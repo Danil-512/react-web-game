@@ -1,0 +1,36 @@
+* {
+    margin: 0;
+    padding: 0;
+    background-color: none;
+}
+.bodyAll {
+    margin: 0;
+    display: block;
+    text-align: center;
+    
+}
+.authorization {
+    background-color: rgb(255, 255, 255);
+    display: inline-block;
+    min-height: 200px;
+    min-width: 200px;
+    height: 55vh;
+    width: 60vw;
+    margin-top: 15vh;
+    border: 1px solid;
+    border-radius: 2%;
+    text-align: center;
+    align-items: center;
+    align-self: center;
+    
+
+}
+
+.auth1 {
+    font-size: 125%;
+    text-align: center;
+    margin-top: 8%;
+}
+input.auth1 {
+    margin-top: 0;
+}

@@ -1,0 +1,18 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+.head1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    background-color: rgb(191, 255, 255);
+    height: 5vh;
+    
+}
+
+.body1 {
+    display: block;
+    background-color: rgb(151, 255, 176);
+    height: 95vh;
+}
