@@ -1,6 +1,6 @@
 import './body.css'
 
-function authorization() {
+export default function authorization() {
     return (
         <div class="authorization">
                 <p class="auth1">Авторизация пользователя</p>
@@ -16,4 +16,3 @@ function authorization() {
     )
 }
 
-export default authorization

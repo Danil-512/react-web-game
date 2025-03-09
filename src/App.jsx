@@ -1,19 +1,19 @@
-import React, { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+/*import React, { useState } from 'react'*/ /*Хуки тут не нужны вроде пока что*/
+/*import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'*/ /* Это логотипы, они не нужны нам*/
 import './App.css'
-import { createRoot } from 'react-dom/client'
+/*import { createRoot } from 'react-dom/client'*/ /*вот это не помню что, вроде вообще не используется*/
 import Head1 from './header/head1.jsx'
 import Body1 from './body/body1.jsx'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  /*const [count, setCount] = useState(0)*/
   return (
     <div>
-      <header id='he1' class="head1"> 
+      <header id='he1' className="head1"> 
         <Head1/>
       </header>
-      <div id='bo1' class="body1">
+      <div id='bo1' className="body1">
         <Body1/>
       </div>
     </div>
@@ -61,5 +61,5 @@ const vdom = (
 //createRoot(head11).render(<Head1 />)
 //createRoot(body11).render(<Body1 />)
 
-export default App
+  
 
