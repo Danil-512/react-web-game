@@ -2,15 +2,15 @@ import './body.css'
 
 export default function authorization() {
     return (
-        <div class="authorization">
-                <p class="auth1">Авторизация пользователя</p>
+        <div className="authorization">
+                <p className="auth1">Авторизация пользователя</p>
                 
-                <p class="auth1">Логин</p>
-                <input class="auth1" id='login'></input>
-                <p class="auth1">Пароль</p>
-                <input class="auth1" id='password'></input>
+                <p className="auth1">Логин</p>
+                <input className="auth1" id='login'></input>
+                <p className="auth1">Пароль</p>
+                <input className="auth1" id='password'></input>
                 <p>
-                    <button class="auth1">Войти</button>
+                    <button className="auth1">Войти</button>
                 </p>
         </div>
     )
