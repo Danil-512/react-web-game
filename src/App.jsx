@@ -3,8 +3,8 @@
 import viteLogo from '/vite.svg'*/ /* Это логотипы, они не нужны нам*/
 import './App.css'
 /*import { createRoot } from 'react-dom/client'*/ /*вот это не помню что, вроде вообще не используется*/
-import Head1 from './header/head1.jsx'
-import Body1 from './body/body1.jsx'
+import Head1 from './components/Header/Head1.jsx'
+import Body1 from './components/Body/Body1.jsx'
 
 export default function App() {
   /*const [count, setCount] = useState(0)*/

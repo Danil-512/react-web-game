@@ -1,5 +1,5 @@
 import './body.css'
-import Authorization from './authorization.jsx'
+import Authorization from './Authorization.jsx'
 
 export default function body1() {
     return (
