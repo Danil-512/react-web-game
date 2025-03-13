@@ -6,14 +6,15 @@ import { createRoot } from 'react-dom/client'
 import Head1 from './header/head1.jsx'
 import Body1 from './body/body1.jsx'
 
+
 function App() {
   const [count, setCount] = useState(0)
   return (
     <div>
-      <header id='he1' class="head1"> 
+      <header id='he1' className="head1"> 
         <Head1/>
       </header>
-      <div id='bo1' class="body1">
+      <div id='bo1' className="body1">
         <Body1/>
       </div>
     </div>
