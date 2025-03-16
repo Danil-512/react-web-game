@@ -22,5 +22,5 @@ from backend_api.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', MyClassView.as_view(), name='tttext')
+    path('', MyClass1View.as_view(), name='tttext')
 ]
