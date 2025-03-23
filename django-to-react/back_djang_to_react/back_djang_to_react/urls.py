@@ -22,5 +22,7 @@ from backend_api.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Строка для подключения авторизации на основе сессии
+    path('api/to_react/authorization', include('rest_framework.urls')),
     path('', MyClass1View.as_view(), name='tttext')
 ]

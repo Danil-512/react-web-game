@@ -3,3 +3,31 @@
     padding: 0;
     background-color: none;
 }
+
+
+.head1 {
+    display: flex;
+    justify-content: left;
+    
+    width: 100vw;
+}
+
+.headerAll {
+    margin-left: 1vw;
+    width: 20vw;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    
+    
+}
+
+.headerButtons {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid;
+    height: 4vh;
+    width: 16vh;
+}

@@ -5,62 +5,60 @@ import './App.css'
 import { createRoot } from 'react-dom/client'
 import Head1 from './header/head1.jsx'
 import Body1 from './body/body1.jsx'
+import Authorization from './body/authorization.jsx'
+import Register from './body/register.jsx'
+import MainWindow from './body/mainWindow.jsx';
+
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+
+// const App = () => {
+//   return (
+//     <BrowserRouter>
+//       <Routes>
+//         <Route path='/' element={<Layout />}>
+//         </Route>
+//       </Routes>
+//     </BrowserRouter>
+//   );
+// };
+
+// const Layout = () => {
+//   return (
+//     <div>
+//       <header className="head1"> 
+//         <Head1 />
+//       </header>
+//       <div className="body1">
+//         <Body1 />
+//       </div>
+//     </div>
+//   );
+// };
+
 
 
 function App() {
-  const [count, setCount] = useState(0)
   return (
-    <div>
-      <header id='he1' className="head1"> 
-        <Head1/>
-      </header>
-      <div id='bo1' className="body1">
-        <Body1/>
+    <BrowserRouter>
+      <div>
+        <header className="head1"> 
+          <Head1 />
+        </header>
+        <div className="body1">
+          <Routes>
+            <Route path="/" element={<Body1 />}>
+              <Route index element={<Authorization />} />
+              <Route path='auth' element={<Authorization />} />
+              <Route path='reg' element={<Register />} />
+              <Route path='main' element={<MainWindow />} />
+            </Route>
+          </Routes>
+        </div>
       </div>
-    </div>
+    </BrowserRouter>
   )
 }
 
-/*
-class Headd extends React.Component {
-  render() {
-    return (
-      <div class='head1' id='he1'>
-        {Head1.head1()}
-      </div>
-    );
-  }
-}
-class Bodyy extends React.Component {
-  render() {
-    return (
-      <div class='body1' id='bo1'>
-        {Body1.body1()}
-      </div>
-    );
-  }
-}
-
-
-const vdom = (
-  <Heaad>
-    <p>fdfd</p>
-  </Heaad>
-);
-*/
-
-//const rootq = ReactDOM.createRoot(document.getElementById('he1'));
-//rootq.render(vdom);
-
-
-
-
-
-//const head11 = document.getElementById('head1');
-//const body11 = document.getElementById('body1');
-
-//createRoot(head11).render(<Head1 />)
-//createRoot(body11).render(<Body1 />)
 
 export default App
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
@@ -65,20 +65,41 @@ export const getData = async (backServerPath, datas, setDatas) => {
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /postAuthorization - post запрос на сервер для авторизации пользователя
 export const postAuthorization = async (backServerPath, login, password) => {
-    let answers = [];
-
     try {
       // Начинаем процесс отправки
         console.log(`Начат процесс отправки данных на ${backServerPath}`);
-        const postStr = {"title": `${login}`, "content": `${password}`}
+        //const postStr = {`"type": ${login}, ""content"": ${password}`}
+        const postStr = {
+          "type": "authorization"
+          , "data1": `${login}`
+          , "data2": `${password}`
+          , "data3": "_"
+        }
+        
 
       // /-------------------------------------------------------------------------------------------------------
       // /axios post
         //await axios.post('http://127.0.0.1:8000/')
         console.log("Начало отправки")
-        const response = await axios.post(backServerPath, postStr);
+        let status1 = "AuthorizationNOTOK"
+        const response = await axios.post(backServerPath, postStr); 
         
-        console.log("Отправлено")
+        return response.data === "AuthorizationOK" 
+            ? "AuthorizationOK" 
+            : "AuthorizationNOTOK";
+
+
+        // .then(function (response) {
+        //   console.log(`response.data IS ${response.data}`);
+        //   // ТУТ НУЖНО СДЕЛАТЬ, ЧТО ЕСЛИ ОТВЕТ ОТ СЕРВЕРА AuthorizationOK, ТО ИЗМЕНЕНИЕ АКТИВНОГО КОМПОНЕНТА В BODY1.JSX
+        //   console.log("Отправляю AuthorizationOK")
+        //   return Promise.resolve("AuthorizationOK");
+        // })
+        // .catch(function (error) {
+        //   console.log(error);
+        //   return Promise.resolve("AuthorizationNOTOK")
+        // })
+        // ;
         //console.log(`Server return to post: ${response.data.title}`);
         
       // axios post/

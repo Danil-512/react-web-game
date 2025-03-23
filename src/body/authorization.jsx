@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './body.css'
 import { getData, postAuthorization } from '../front_functions/functions.js'
+import { useNavigate } from 'react-router-dom';
 
 // Адрес бэкенд сервера: 
 const backServerPath = 'http://127.0.0.1:8000/';
@@ -24,6 +25,8 @@ function authorization() {
     const [login, setLogin] = useState("");
     const [password, setPassword] = useState("");
     const [status, setStatus] = useState("");
+    const navigate = useNavigate();
+
 
     // Ссылка на логин
     const inputRefLogin = useRef(null);
@@ -68,7 +71,7 @@ function authorization() {
 
     // /-------------------------------------------------------------------------------------------------------
     // /Функция нажатия кнопки на странице авторизации
-    const handleButtonClick = () => {
+    const handleButtonClick = async () => {
         console.log(`-----------------------------------------`)
         console.log(`Событие на странице: handleLoginClick`)
 
@@ -80,12 +83,27 @@ function authorization() {
         const login = inputRefLogin.current.value;
         const password = inputRefPassword.current.value;
         console.log(`---Password is: ${password}, Login is: ${login}.`)
-        // Переменные с паролем и логином/
+        // Переменные с паролем и логином
 
         // /Отправка данных серверу
-        postAuthorization(backServerPath, login, password);
+        //const status1 = await postAuthorization(backServerPath, login, password);
         // Отправка данных серверу/
+        
 
+        await postAuthorization(backServerPath, login, password)
+        .then(function (response) {
+            console.log("2")
+            console.log(`Status: ${response}`)
+            if (response === "AuthorizationOK") {
+                console.log("Авторизация прошла, должен был произойти переход1")
+    
+                navigate('/main');
+                console.log("Авторизация прошла, должен был произойти переход2")
+            }
+        });;
+        
+
+        console.log("dddd1")
 
         //setData(MyComponent());
         setStatus("Контакт с сервером установлен");
