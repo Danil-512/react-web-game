@@ -73,7 +73,7 @@ function authorization() {
     // /Функция нажатия кнопки на странице авторизации
     const handleButtonClick = async () => {
         console.log(`-----------------------------------------`)
-        console.log(`Событие на странице: handleLoginClick`)
+        console.log(`Событие на странице: handleLoginClick - Authorization`)
 
         // /Получение данных от бэкенда
         //getData(backServerPath, datas, setDatas);
@@ -90,7 +90,7 @@ function authorization() {
         // Отправка данных серверу/
         
 
-        await postAuthorization(backServerPath, login, password)
+        await postAuthorization(login, password)
         .then(function (response) {
             console.log("2")
             console.log(`Status: ${response}`)
@@ -118,7 +118,7 @@ function authorization() {
     // /-------------------------------------------------------------------------------------------------------
     // /Возвращаемая верстка
     return (
-        <div class="authorization" id='div1' key='div1'>
+        <div className="authorization" id='div1' key='div1'>
             <p className="auth1">Авторизация пользователя</p>
             
             <p className="auth1">Логин</p>

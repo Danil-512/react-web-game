@@ -16,13 +16,40 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+
 from django.urls import re_path as url
 from backend_api.views import *
+from backend_api.functions_to_auth_and_reg import  add_new_user, access_type_create
+
+#from ..backend_api.views import  LawListView, LawArticlesView
+
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Строка для подключения авторизации на основе сессии
     path('api/to_react/authorization', include('rest_framework.urls')),
-    path('', MyClass1View.as_view(), name='tttext')
+    path('', MyClass1View.as_view(), name='tttext'),
+
+
+    #path('laws/', LawListView.as_view(), name='laws-list'),
+    path('laws/', LawListView.as_view(), name='laws-list'),
+    #path('laws/<int:law_id>/articles/', LawStView.as_view(), name='law-st'),
+
+
+    path('laws/<int:law_id>/<str:str2>/', LawArticleDetailView.as_view(), name='law-st'),
+    path('laws/<int:law_id>/articles', LawArticlesView.as_view(), name='law-st-articles'),
+    path('laws/<int:law_id>', LawArticlesView.as_view(), name='law-st-articles'),
+
+
+
+
+
+    # path('laws/<int:law_id>/', LawStView.as_view(), name='law-st'),
+    # path('laws/<int:law_id>/articles/', LawArticlesView.as_view(), name='law-st-articles'),
+
+
+    #path('api/laws/<int:law_id>/articles/', LawArticlesView.as_view()),  # Для фронтенда через прокси
+    #path('api/laws/', LawListView.as_view(), name='laws-list'),
+    #path('api/laws/<int:law_id>/articles/', LawArticlesView.as_view(), name='law-articles'),
 ]

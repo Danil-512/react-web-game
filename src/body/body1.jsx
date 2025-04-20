@@ -10,7 +10,7 @@ import { NavLink, Outlet } from "react-router"
 
 function body1() {
     return (
-        <div class="bodyAll">
+        <div className="bodyAll">
             <Outlet />
         </div>
     )

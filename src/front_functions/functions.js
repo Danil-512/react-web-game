@@ -2,10 +2,11 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const backServerPath = 'http://127.0.0.1:8000/';
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /getData - get запрос на сервер для получения списка json данных
-export const getData = async (backServerPath, datas, setDatas) => {
+export const getData = async (datas, setDatas) => {
     let answer;
     let answers = [];
     try {
@@ -61,13 +62,71 @@ export const getData = async (backServerPath, datas, setDatas) => {
 // getData/
 // ----------------------------------------------------------------------------------------------------------------------------------------------/
 
+// /----------------------------------------------------------------------------------------------------------------------------------------------
+// /exitr - post запрос на сервер для выхода из аккаунта
+export const postExit = async () => {
+  try {
+    console.log(`Выход из аккаунта. Начат процесс отправки данных на ${backServerPath}`);
+    const postStr = {
+      "type": "exit"
+      , "data1": "_"
+      , "data2": "_"
+      , "data3": "_"
+    };
+    //
+    // /-------------------------------------------------------------------------------------------------------
+      // /axios post
+      console.log("Exit. Начало отправки");
+      let status1 = "ExitNOTOK";
+      const response = await axios.post(backServerPath, postStr); 
+      return response.data === "ExitOK" 
+          ? "ExitOK" 
+          : "ExitNOTOK";
+    // axios post/
+    // -------------------------------------------------------------------------------------------------------/
+  }
+  catch {
+    console.log("Ошибка выхода из аккаунта.")
+  }
+}
+
+// /----------------------------------------------------------------------------------------------------------------------------------------------
+// /postRegister - post запрос на сервер для регистрации пользователя
+export const postRegister = async (login, password) => {
+  try {
+    console.log(`Регистрация. Начат процесс отправки данных на ${backServerPath}`);
+    const postStr = {
+      "type": "register"
+      , "data1": `${login}`
+      , "data2": `${password}`
+      , "data3": "_"
+    }
+    //
+    // /-------------------------------------------------------------------------------------------------------
+      // /axios post
+        console.log("Регистрация. Начало отправки")
+        let status1 = "RegisterNOTOK"
+        const response = await axios.post(backServerPath, postStr); 
+        return response.data === "RegisterOK" 
+            ? "RegisterOK" 
+            : "RegisterNOTOK";
+      // axios post/
+      // -------------------------------------------------------------------------------------------------------/
+  }
+  catch {
+
+  }
+}
+// postRegister - post запрос на сервер для регистрации пользователя/
+// ----------------------------------------------------------------------------------------------------------------------------------------------/
+
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /postAuthorization - post запрос на сервер для авторизации пользователя
-export const postAuthorization = async (backServerPath, login, password) => {
+export const postAuthorization = async (login, password) => {
     try {
       // Начинаем процесс отправки
-        console.log(`Начат процесс отправки данных на ${backServerPath}`);
+        console.log(`Авторизация. Начат процесс отправки данных на ${backServerPath}`);
         //const postStr = {`"type": ${login}, ""content"": ${password}`}
         const postStr = {
           "type": "authorization"
@@ -80,10 +139,12 @@ export const postAuthorization = async (backServerPath, login, password) => {
       // /-------------------------------------------------------------------------------------------------------
       // /axios post
         //await axios.post('http://127.0.0.1:8000/')
-        console.log("Начало отправки")
+        console.log("Авторизация. Начало отправки")
         let status1 = "AuthorizationNOTOK"
+        // Почему авторизация Post? Нужен ведь Get
         const response = await axios.post(backServerPath, postStr); 
-        
+        //const response = await axios.get(backServerPath, postStr);
+
         return response.data === "AuthorizationOK" 
             ? "AuthorizationOK" 
             : "AuthorizationNOTOK";
