@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import './body.css';
+import '../body.css';
 
 function ArticleDetails() {
   const { lawId, articleId } = useParams(); // Получаем оба параметра
@@ -36,7 +36,7 @@ function ArticleDetails() {
         <>
           <h1>{article.title}</h1>
           <div className="meta-info">
-            <span>Статья №{article.id}</span>
+            <span>Статья №5555{article.id}</span>
             <span>Дата: {new Date(article.date).toLocaleDateString()}</span>
           </div>
           <div className="content">

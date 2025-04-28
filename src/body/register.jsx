@@ -20,10 +20,14 @@ const backServerPath = 'http://127.0.0.1:8000/';
 // ----------------------------------------------------------------------------------------------------------------------------------------------/
 // /Возвращаемая функция
 function register() {
+    const navigate = useNavigate();
     // Ссылка на логин
     const inputRefLogin = useRef(null);
     // Ссылка на пароль
     const inputRefPassword = useRef(null);
+
+    const [status, setStatus] = useState("");
+    
 
     const handleButtonClick = async () => {
         console.log(`-----------------------------------------`)
@@ -36,15 +40,18 @@ function register() {
                 .then(function (response) {
                     console.log("2");
                     console.log(`Login: ${inputRefLogin}, Password: ${inputRefPassword}`);
+                    console.log();
                     console.log(`Status: ${response}`)
-                    if (response === "RegisterOK") {
+                    if (response === 'RegisterOK') {
                         console.log("Регистрация прошла, должен был произойти переход1")
             
-                        navigate('/main');
+                        navigate('/auth');
                         console.log("Регистрация прошла, должен был произойти переход2")
+                        setStatus(`Новый пользователь зарегестрирован: ${inputRefLogin}`)
                     }
                     else {
                         console.log('Неудачная регистрация');
+                        setStatus(`Неудачная регистрация: ${inputRefLogin}`)
                     }
                 });;
     };
@@ -55,15 +62,15 @@ function register() {
     
     return (
         <div className='authorization'>
-            <p className="auth1">Регистрация пользователя</p>
-            
+            <p className="auth3">Регистрация пользователя</p>
             <p className="auth1">Логин</p>
-            <input className="auth1" id='login' ref={inputRefLogin}></input>
-
+            <input className="auth2" id='login' ref={inputRefLogin}></input>
             <p className="auth1">Пароль</p>
-            <input className="auth1" id='password' ref={inputRefPassword}></input>
-            <p className="auth1"></p>
-            <button onClick={handleButtonClick}>Зарегистрироваться</button>
+            <input className="auth2" id='password' ref={inputRefPassword}></input>
+            <button className="auth1" onClick={handleButtonClick}>Зарегистрироваться</button>
+            <p className="auth1">
+                {status}
+            </p>
         </div>
     )
 }

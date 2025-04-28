@@ -21,7 +21,7 @@ from django.urls import re_path as url
 from backend_api.views import *
 from backend_api.functions_to_auth_and_reg import  add_new_user, access_type_create
 
-#from ..backend_api.views import  LawListView, LawArticlesView
+#from ..backend_api.views import  LawsListView, LawArticlesView
 
 
 
@@ -33,13 +33,20 @@ urlpatterns = [
 
 
     #path('laws/', LawListView.as_view(), name='laws-list'),
-    path('laws/', LawListView.as_view(), name='laws-list'),
+
+    # Список законов
+    path('laws/', LawsListView.as_view(), name='laws-list'),
+    # Список статей закона
+    path('laws/<int:p_law_id>/', LawArticlesListView.as_view(), name='law-articles'),
+    # Текст статьи
+    path('laws/<int:p_law_id>/<int:p_article_id>/', ArticleTextListView.as_view(), name='article_text')
+
     #path('laws/<int:law_id>/articles/', LawStView.as_view(), name='law-st'),
 
 
-    path('laws/<int:law_id>/<str:str2>/', LawArticleDetailView.as_view(), name='law-st'),
-    path('laws/<int:law_id>/articles', LawArticlesView.as_view(), name='law-st-articles'),
-    path('laws/<int:law_id>', LawArticlesView.as_view(), name='law-st-articles'),
+    #path('laws/<int:law_id>/<str:str2>/', LawArticleDetailView.as_view(), name='law-st'),
+    #path('laws/<int:law_id>/articles', LawArticlesView.as_view(), name='law-st-articles'),
+    #######path('laws/<int:law_id>', LawsArticlesView.as_view(), name='law-st-articles'),
 
 
 

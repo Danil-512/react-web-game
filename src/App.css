@@ -6,13 +6,19 @@
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
-    background-color: rgb(191, 255, 255);
+    background-color: rgba(233, 233, 233, 0.505);
     height: 5vh;
-    
+    border-bottom: 1px solid rgba(190, 190, 190, 0.592);
 }
 
 .body1 {
     display: block;
-    background-color: rgb(151, 255, 176);
-    height: 95vh;
+    background-color: rgba(182, 255, 255, 0.366);
+    min-height: 95vh;
+    height: 100%;
+    align-items: center;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+
 }

@@ -1,48 +1,8 @@
-// import authorization from '../body/authorization';
-// import './header.css'
-// import { createBrowserRouter,  BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
-// import { postExit } from '../front_functions/functions.js'
-
-
-// function head1() {
-//   const location = useLocation()
-//     return (
-//       <div className='headerAll'>
-        
-//           <nav>
-//             {
-//               location.pathname == '/' && (
-//                 <Link to="/reg" className='headerButtons'>Registration</Link>
-//               )
-//             }
-//             {
-//               location.pathname == '/auth' && (
-//                 <Link to="/reg" className='headerButtons'>Registration</Link>
-//               )
-//             }
-//             {
-//               location.pathname == '/reg' && (
-//                 <Link to="/auth" className='headerButtons'>Authorization</Link>
-//               )
-//             }
-//             {
-//               location.pathname == '/main' && (
-//                 <Link to="/auth" className='headerButtons'>Authorization</Link>
-//               )
-//             }
-//             {/* <Link to="/auth" className='headerButtons'>Authorization</Link>
-//             <Link to="/main" className='headerButtons'>Main</Link> */}
-//           </nav>
-
-        
-//       </div>
-//     )
-// }
-
-// export default head1
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { postExit } from '../front_functions/functions.js';
 import './header.css';
+import { getVariables } from '../sessionlVariables.js'
+
 
 function Head1() {
   const location = useLocation();
@@ -59,6 +19,28 @@ function Head1() {
     navigate('/auth');
   };
 
+  const handleMainClick = async () => {
+    navigate('/main');
+  };
+
+  const handleLawsClick = async () => {
+    navigate('/laws');
+  };
+
+  const handleArticlesClick = async () => {
+    console.log(location.pathname);
+    let path = location.pathname
+    path = path.split('/').reverse()
+    console.log(`path is: ${path}`)
+    navigate(`/laws/${path[1]}`);
+  };
+  
+
+  
+  const isArcticlesPage = /^\/laws\/\d+$/.test(location.pathname)
+  const isArticleTextLawPage = /^\/laws\/\d+\/\d+$/.test(location.pathname)
+
+  
   return (
     <div className='headerAll'>
       <nav>
@@ -76,7 +58,49 @@ function Head1() {
             Сменить пользователя
           </button>
         )}
+        {location.pathname === '/laws'
+          && 
+          (
+          <button onClick={handleMainClick} className='headerButtons'>
+            Главное меню
+          </button>
+          )
+        }
+        {isArcticlesPage
+          && 
+          (
+          <button onClick={handleLawsClick} className='headerButtons'>
+            Законы
+          </button>
+          )
+        }
+        {isArticleTextLawPage
+          && 
+          (
+          <button onClick={handleArticlesClick} className='headerButtons'>
+            Статьи закона
+          </button>
+          )
+        }
       </nav>
+      {
+        getVariables()[1] != null &&
+        <div className='headerUserInfo'>
+          <p>
+            Пользователь: 
+            <span>
+              {getVariables()[1]}
+            </span>
+          </p>
+          <p>
+            Права:
+            <span>
+              {getVariables()[2]}
+            </span>
+          </p>
+        </div>
+      }
+      
     </div>
   );
 }

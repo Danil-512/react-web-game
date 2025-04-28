@@ -1,6 +1,8 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getVariables, setVariavle, exitVariables} from '../sessionlVariables.js'
+
 
 const backServerPath = 'http://127.0.0.1:8000/';
 
@@ -77,6 +79,7 @@ export const postExit = async () => {
     // /-------------------------------------------------------------------------------------------------------
       // /axios post
       console.log("Exit. Начало отправки");
+      exitVariables()
       let status1 = "ExitNOTOK";
       const response = await axios.post(backServerPath, postStr); 
       return response.data === "ExitOK" 
@@ -144,8 +147,18 @@ export const postAuthorization = async (login, password) => {
         // Почему авторизация Post? Нужен ведь Get
         const response = await axios.post(backServerPath, postStr); 
         //const response = await axios.get(backServerPath, postStr);
+        console.log(`Response in function.js is: ${response.data.split('-')[0]}`);
 
-        return response.data === "AuthorizationOK" 
+        console.log(`response.data.split('-')[1] is: ${response.data.split('-')[1]}`);
+
+        setVariavle('session_user_login', login);
+        setVariavle('session_user_access_level', response.data.split('-')[1]);
+
+        //session.session_user_access_level = response.data.split('-')[1];
+        //console.log(`Авторизация пользователя: ${session.session_user_access_name}. Права доступа: ${session.session_user_access_level}`);
+                
+
+        return response.data.split('-')[0] === "AuthorizationOK" 
             ? "AuthorizationOK" 
             : "AuthorizationNOTOK";
 

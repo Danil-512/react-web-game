@@ -88,17 +88,19 @@ function authorization() {
         // /Отправка данных серверу
         //const status1 = await postAuthorization(backServerPath, login, password);
         // Отправка данных серверу/
-        
 
         await postAuthorization(login, password)
         .then(function (response) {
             console.log("2")
-            console.log(`Status: ${response}`)
+            console.log(`Status: ${response} 0`)
             if (response === "AuthorizationOK") {
                 console.log("Авторизация прошла, должен был произойти переход1")
-    
                 navigate('/main');
                 console.log("Авторизация прошла, должен был произойти переход2")
+                setStatus("Удачная авторизация");
+            }
+            else {
+                setStatus("Ошибка авторизации");
             }
         });;
         
@@ -106,7 +108,7 @@ function authorization() {
         console.log("dddd1")
 
         //setData(MyComponent());
-        setStatus("Контакт с сервером установлен");
+        //setStatus("Контакт с сервером установлен");
 
         // Здесь можно добавить логику для обновления логина на основе пароля
         //setLogin(password); // Пример: обновляем логин значением из поля пароля
@@ -120,19 +122,13 @@ function authorization() {
     return (
         <div className="authorization" id='div1' key='div1'>
             <p className="auth1">Авторизация пользователя</p>
-            
             <p className="auth1">Логин</p>
             <input className="auth1" id='login' ref={inputRefLogin}></input>
-
             <p className="auth1">Пароль</p>
-            <input className="auth1" id='password' ref={inputRefPassword} onChange={handlePasswordChange}></input>
-                    
-            <p>
-                <button /*type='submit'*/ className="auth1" id='button1' onClick={handleButtonClick}>
+            <input className="auth1" id='password' ref={inputRefPassword} onChange={handlePasswordChange}></input>    
+                <button className="auth1" id='button1' onClick={handleButtonClick}>
                     Войти
                 </button>
-            </p>
-
             <p>
                 {status}
             </p>
@@ -144,5 +140,5 @@ function authorization() {
 // Возвращаемая функция/
 // ----------------------------------------------------------------------------------------------------------------------------------------------/
 
-
 export default authorization;
+//export default { session_user_access_level, session_user_access_name, authorization } ;

@@ -4,6 +4,10 @@
     background-color: none;
 }
 
+naw {
+    width: 100%;
+
+}
 
 .head1 {
     display: flex;
@@ -13,11 +17,15 @@
 }
 
 .headerAll {
-    margin-left: 1vw;
-    width: 20vw;
     display: flex;
-    align-items: center;
-    text-align: center;
+    justify-content: space-between;
+    margin-left: 1vw;
+    margin-right: 1vw;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    width: 100%;
+    display: flex;
+    
     
     
 }
@@ -27,7 +35,19 @@
     text-align: center;
     justify-content: center;
     align-items: center;
-    border: 1px solid;
-    height: 4vh;
-    width: 16vh;
+    border: 1px solid rgb(156, 156, 156);
+    width: 110%;
+    min-width: 10vw;
+    height: 100%;
+    background-color: rgb(227, 255, 255);
+
+}
+
+.headerUserInfo {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgb(156, 156, 156);
+    font-size: 80%;
+    background-color: rgb(227, 255, 255);
+
 }

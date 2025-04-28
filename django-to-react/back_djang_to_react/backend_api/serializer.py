@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MyClass1, LawArticle, Law
+from .models import MyClass1, Laws, Articles
 from .models import UsersAuthorization
 from .models import UsersList
 from .models import UsersInfo
@@ -38,33 +38,35 @@ class UserAccessSerializer(serializers.ModelSerializer):
         fields =  ['userId', 'accessTypeId']
 
 
-class LawSerializer(serializers.ModelSerializer):
+# Сериалайзер таблицы с законами
+class LawsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Law
-        fields = ['id', 'title', 'date', 'number']
+        model = Laws
+        fields = ['law_id', 'law_number', 'law_title', 'law_date']
 
-
-# class LawArticleSerializer(serializers.ModelSerializer):
-#     parent_id = serializers.IntegerField(source='law.id', read_only=True)
-#
+# # Сериалайзер таблицы связывающей законы и статьи
+# class LawsArticlesSerializer(serializers.ModelSerializer):
+#     # law_id = serializers.IntegerField(source='law.id', read_only=True)
+#     # law_title = serializers.CharField(source='law.title', read_only=True)
 #     class Meta:
-#         model = LawArticle
-#         fields = ['id', 'title', 'date', 'text', 'parent_id']
+#         model = LawsArticles
+#         fields = ['rec_id', 'law_id', 'article_id']
 
-class LawArticleSerializer(serializers.ModelSerializer):
-    law_id = serializers.IntegerField(source='law.id', read_only=True)
-    law_title = serializers.CharField(source='law.title', read_only=True)
-
+# Сериалайзер таблицы со статьями закона
+class ArticlesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LawArticle
-        fields = ['id', 'title', 'date', 'text', 'law_id', 'law_title']
+        model = Articles
+        fields = ('article_id', 'article_parent_id', 'article_number', 'article_title', 'article_file_path')
 
-class LawArticleShortSerializer(serializers.ModelSerializer):
+# Сериалайзер со списком законов и их кратким описанием
+class LawsShortSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LawArticle
-        fields = ('id', 'title', 'law_id')
+        model = Laws
+        fields = ('law_id', 'law_title')
 
-class LawArticleShortSerializer2(serializers.ModelSerializer):
+# Сериалайзер со списком затей и их кратким описанием
+class ArticlesShortSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LawArticle
-        fields = ('id', 'title')  # Убедитесь, что эти поля существуют в модели
+        model = Articles
+        fields = ('article_number', 'article_title', 'article_descr')
+
