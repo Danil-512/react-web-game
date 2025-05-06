@@ -65,18 +65,20 @@ class Laws(models.Model):
 
 # Таблица со статьями закона
 class Articles(models.Model):
-    article_id = models.IntegerField(primary_key=True)
+    article_id = models.AutoField(primary_key=True)
     article_parent_id = models.ForeignKey(Laws, to_field='law_id', on_delete=models.CASCADE, blank=False, default=0)
     article_number = models.IntegerField(blank=False)
     article_title = models.CharField(blank=False, max_length=100)
     article_descr = models.CharField(blank=False, max_length=400, default='')
 
+# Пункты статьи
 class ArticleClauses(models.Model):
     clause_id = models.AutoField(primary_key=True)
     clause_number = models.IntegerField(blank=False, default=0)
     clause_parent_id = models.ForeignKey(Articles, to_field='article_id', on_delete=models.CASCADE, blank=False, default=0)
     clause_text = models.CharField(blank=False, max_length=2000)
 
+# Таблица с видами ответсвенности
 class Responsibilitys(models.Model):
     responsibility_id = models.IntegerField(primary_key=True)
     responsibility_type = models.CharField(blank=False, max_length=50)
@@ -93,14 +95,13 @@ class RespToLaws(models.Model):
 
 
 class RespToArticles(models.Model):
-    resp_article_record_id = models.IntegerField(primary_key=True)
+    resp_article_record_id = models.AutoField(primary_key=True)
     resp_article_id = models.ForeignKey(Articles, to_field='article_id', blank=False, on_delete=models.CASCADE)
     resp_first_type = models.IntegerField(blank=False, default=0)
     resp_second_type = models.IntegerField(blank=False, default=0)
     resp_third_type = models.IntegerField(blank=False, default=0)
     resp_fourth_type = models.IntegerField(blank=False, default=0)
     resp_another_type = models.IntegerField(blank=False, default=0)
-    resp_none_type = models.IntegerField(blank=False, default=0)
 
 # # Таблица для связывания законов и статей
 # class LawsArticles(models.Model):

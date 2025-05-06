@@ -15,8 +15,9 @@ function MainWindow() {
     useEffect(() => {
         const fetchLaws = async () => {
         try {
-            const response = await axios.get('/api/laws');
-            
+            //const response = await axios.get('/api/laws');
+            const response = await axios.get('http://127.0.0.1:8000/laws');
+
             console.log(response.data)
 
             //const response1 = await axios.get(`/api/laws/${1}/`);

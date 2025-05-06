@@ -5,6 +5,7 @@ from .models import UsersList
 from .models import UsersInfo
 from .models import UsersAccess
 from .models import AccessTypes
+from .models import *
 
 
 class MyClass1Serializer(serializers.ModelSerializer):
@@ -69,4 +70,10 @@ class ArticlesShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Articles
         fields = ('article_number', 'article_title', 'article_descr')
+
+# Сериалайзер пунктов
+class ArticleClausesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ArticleClauses
+        fields = ('clause_number', 'clause_parent_id', 'clause_text')
 
