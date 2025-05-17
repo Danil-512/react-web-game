@@ -8,7 +8,7 @@ from django.db.models import Max
 
 # Модели и сериалайзеры для работы с законами и статьями
 from .models import MyClass1, Laws, Articles, UsersAccess, ArticleClauses, RespToArticles
-from .serializer import MyClass1Serializer, LawsSerializer, ArticlesSerializer, LawsShortSerializer, ArticlesShortSerializer, ArticleClausesSerializer
+from .serializer import MyClass1Serializer, LawsSerializer, ArticlesSerializer, LawsShortSerializer, ArticlesShortSerializer, ArticleClausesSerializer, RespToArticlesSerializer
 
 # Модели и сериалайзеры для работы с авторизацией и регистрацией пользователей
 from .models import UsersList, UsersInfo, UsersAuthorization
@@ -20,6 +20,15 @@ from rest_framework.response import Response
 # Импорт моих функций
 from .functions_to_auth_and_reg import add_new_user, access_type_create
 
+# Функция для цветного вывода в консоль
+def color_print(text, color):
+    if color.upper() == 'BLUE':
+        print("\033[34m{}".format(text))
+    elif color.upper() == 'RED':
+        print("\033[31m{}".format(text))
+    else:
+        print("\033[33m{}".format(text))
+    print("\033[0m{}".format(''))
 
 
 class MyClass1View(APIView):
@@ -118,17 +127,60 @@ class LawArticlesListView(APIView):
         # Получение списка статей закона
         articles = Articles.objects.filter(article_parent_id=p_law_id)
         print(f'Articles of law list is: {articles}')
+
         # Создание json для ответа клиенту?
         serializer = ArticlesShortSerializer(articles, many=True)
-        print(f'Вывод списка законов пользователю: {serializer.data}')
+        data_list_dict = serializer.data
+
+        print(f'len(data_list_dict) is {len(data_list_dict)}')
+
+        for i in range(0, len(data_list_dict)):
+            print(f'------------------------ i is {i}')
+
+        # Сделаю цикл по статьям закона и в нем уже буду добавлять ответственность
+        for i in range(0, len(data_list_dict)):
+            print(f'I is: {i}')
+            respToArticle = RespToArticles.objects.filter(resp_article_id=data_list_dict[i]['article_id'])
+            serializerRespToArticles = RespToArticlesSerializer(respToArticle, many=respToArticle.exists())
+            print('serializerRespToArticles is')
+            print(f'{serializerRespToArticles.data}')
+            str_responsobilitys = ''
+            # if serializerRespToArticles.data[i]['resp_first_type'] == 1:
+            #     str_responsobilitys = f'{str_responsobilitys}{'Уголовная'}'
+            # if serializerRespToArticles.data[i]['resp_second_type'] == 1:
+            #     str_responsobilitys = f'{str_responsobilitys}{' Административная'}'
+            # if serializerRespToArticles.data[i]['resp_third_type'] == 1:
+            #     str_responsobilitys = f'{str_responsobilitys}{' Гражданская'}'
+            # if serializerRespToArticles.data[i]['resp_fourth_type'] == 1:
+            #     str_responsobilitys = f'{str_responsobilitys}{' Иная'}'
+
+            for resp_data in serializerRespToArticles.data:
+                if resp_data.get('resp_first_type') == 1:
+                    str_responsobilitys += ' Уголовная'
+                if resp_data.get('resp_second_type') == 1:
+                    str_responsobilitys += ' Административная'
+                if resp_data.get('resp_third_type') == 1:
+                    str_responsobilitys += ' Гражданская'
+                if resp_data.get('resp_fourth_type') == 1:
+                    str_responsobilitys += ' Иная'
+
+
+            print(f'str_responsobilitys is {str_responsobilitys}')
+            data_list_dict[i]['article_responsobility'] = str_responsobilitys
+
+        print(f'Вывод списка законов пользователю: {data_list_dict}')
         return Response(serializer.data)
 
 # Текст статьи закона
 class ArticleTextListView(APIView):
     def get(self, request, p_law_id, p_article_id):
+
+        print('-------------------------------------------------------------------------')
         print(f'Get request for a articles text. {p_law_id} law, {p_article_id} article')
 
-        article = Articles.objects.get(article_id=p_article_id)
+        #law = Laws.objects.get(law_id=p_law_id)
+
+        article = Articles.objects.get(article_number=p_article_id, article_parent_id = p_law_id)
         # Пункты статьи
         articleClauses = ArticleClauses.objects.filter(clause_parent_id=article)
         # Сериалайзер пунктов
@@ -136,10 +188,14 @@ class ArticleTextListView(APIView):
         all_text = ''
         for el in serializer.data:
             print(f'el is {el}')
-        print(f'serializer.data is: {serializer.data}')
+            all_text = f'{all_text}\n'
+            all_text = f'{all_text}Пункт статьи номер: {el['clause_number']}.\n'
+            all_text = f'{all_text}Текст пункта статьи: {el['clause_text']}^;.'
+        print('Текст, отправляемый обратно:')
+        color_print(all_text, 'blue')
 
-
-        return Response('NewArticleOK')
+        #print(f'serializer.data is: {serializer.data}')
+        return Response(all_text)
 
         # file_path = f'../lawsArticles/1-1.txt'
         #
@@ -190,7 +246,11 @@ class NewArticle(APIView):
         print(f'Вывод списка законов пользователю: {serializer.data}')
         print(f'max_number is: {articles.aggregate(Max('article_number'))['article_number__max']}')
 
-        new_article_number = articles.aggregate(Max('article_number'))['article_number__max'] + 1
+        if articles.aggregate(Max('article_number'))['article_number__max'] is None:
+            new_article_number = 1
+        else:
+            new_article_number = articles.aggregate(Max('article_number'))['article_number__max'] + 1
+
 
         print(f'responsibilities is: {responsibilities}')
         new_article = Articles.objects.create(

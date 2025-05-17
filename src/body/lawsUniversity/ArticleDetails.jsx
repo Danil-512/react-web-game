@@ -4,6 +4,8 @@ import axios from 'axios';
 import '../body.css';
 
 function ArticleDetails() {
+  console.log('%cFunction ArticleDetails starting.', 'color: blue')
+
   const { lawId, articleId } = useParams(); // Получаем оба параметра
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);

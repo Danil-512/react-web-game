@@ -39,6 +39,13 @@ function Head1() {
   
   const isArcticlesPage = /^\/laws\/\d+$/.test(location.pathname)
   const isArticleTextLawPage = /^\/laws\/\d+\/\d+$/.test(location.pathname)
+  const isAddArtciclePage = /^\/laws\/\d+\/newArticle$/.test(location.pathname);
+  // Регулярные выражения составляются так:
+  //  ^ - начало строки
+  //  \/laws\/ - точное совпадение
+  // \d+ - \d цифра, + одна или больше
+  // \/newArticle - точное совпадение
+  // $ - конец строки
 
   
   return (
@@ -81,6 +88,12 @@ function Head1() {
             Статьи закона
           </button>
           )
+        }
+        {isAddArtciclePage
+         &&
+         <button onClick={handleArticlesClick} className='headerButtons'>
+            Статьи закона
+          </button>
         }
       </nav>
       {

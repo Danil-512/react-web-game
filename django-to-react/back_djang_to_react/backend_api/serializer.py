@@ -65,11 +65,18 @@ class LawsShortSerializer(serializers.ModelSerializer):
         model = Laws
         fields = ('law_id', 'law_title')
 
-# Сериалайзер со списком затей и их кратким описанием
+# Сериалайзер со списком статей и их кратким описанием
 class ArticlesShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Articles
+        fields = ('article_id', 'article_number', 'article_title', 'article_descr')
+
+# Сериалайзер со списком статей и их типами ответсвенности за нарушение
+class ArticlesResponsibilitys(serializers.ModelSerializer):
+    class Meta:
+        model = Articles
         fields = ('article_number', 'article_title', 'article_descr')
+
 
 # Сериалайзер пунктов
 class ArticleClausesSerializer(serializers.ModelSerializer):
@@ -77,3 +84,16 @@ class ArticleClausesSerializer(serializers.ModelSerializer):
         model = ArticleClauses
         fields = ('clause_number', 'clause_parent_id', 'clause_text')
 
+# Сериалайзер ответсвенности за статьи
+class RespToArticlesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RespToArticles
+        fields = (
+            'resp_article_record_id'
+            ,'resp_article_id'
+            ,'resp_first_type'
+            ,'resp_second_type'
+            ,'resp_third_type'
+            ,'resp_fourth_type'
+            ,'resp_another_type'
+        )

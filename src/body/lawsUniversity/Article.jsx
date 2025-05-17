@@ -7,7 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import './law.css'
 
 // Список статей по закону, передаваемому в параметре
-function LawArticles() {
+function ArticlesText() {
+  console.log('%cFunction ArticlesText starting.', 'color: red')
+
   const { lawId, articleId } = useParams();
   const [text, setText] = useState(true);
   const [splitData, setSplitData] = useState([]);
@@ -26,7 +28,7 @@ function LawArticles() {
         console.log(`articlesResponse.data is: ${textResponse.data}`);
         const data = textResponse.data 
         setText(data);
-        setSplitData(data.text.split('\n'));
+        setSplitData(data.split('^;'));
         console.log(splitData)
       } catch (err) {
         console.error('Полная ошибка:', err);
@@ -48,11 +50,13 @@ function LawArticles() {
         <p>...</p>
         {splitData.map((data) => (
             <div className="articles-list">
-                <p>{data}</p>
+                {data.split('\n').map((data1) => (
+                  <p>{data1}</p>
+                ))}
             </div>
         ))}
     </div>
   );
 }
 
-export default LawArticles;
+export default ArticlesText;
