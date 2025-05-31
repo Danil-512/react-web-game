@@ -1,64 +1,25 @@
-"""
-URL configuration for back_djang_to_react project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
 
 from django.urls import re_path as url
-from backend_api.views import *
-from backend_api.functions_to_auth_and_reg import  add_new_user, access_type_create
-
-#from ..backend_api.views import  LawsListView, LawArticlesView, NewArticle
-
-
+from backend_api.views import MyClass1View, LawsListView, LawArticlesListView, ArticleTextListView, NewArticle, GetCSRFToken, GetActualUser, CheckSessionView, debug_redis_sessions
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Строка для подключения авторизации на основе сессии
     path('api/to_react/authorization', include('rest_framework.urls')),
-    path('', MyClass1View.as_view(), name='tttext'),
+    path('get-csrf/', GetCSRFToken.as_view(), name='get-csrf'),  # Перенесите этот маршрут выше
+    #path('api/', include('backend_api.urls')),  # Перенесите этот маршрут выше
 
+    path('', MyClass1View.as_view(), name='tttext'),  # Корневой маршрут должен быть последним
 
-    #path('laws/', LawListView.as_view(), name='laws-list'),
+    path('get_actual_user/', GetActualUser.as_view(), name='get-actual-user'),
 
-    # Список законов
+    path('debug/sessions/', debug_redis_sessions, name='debug_sessions'),
+
+    path('check-session/', CheckSessionView.as_view(), name='check-session'),
+
     path('laws/', LawsListView.as_view(), name='laws-list'),
-    # Список статей закона
     path('laws/<int:p_law_id>/', LawArticlesListView.as_view(), name='law-articles'),
-    # Текст статьи
     path('laws/<int:p_law_id>/<int:p_article_id>/', ArticleTextListView.as_view(), name='article_text'),
-    # Добавление новой статьи
     path('laws/<int:p_law_id>/newArticle/', NewArticle.as_view(), name='new_article')
-
-    #path('laws/<int:law_id>/articles/', LawStView.as_view(), name='law-st'),
-
-
-    #path('laws/<int:law_id>/<str:str2>/', LawArticleDetailView.as_view(), name='law-st'),
-    #path('laws/<int:law_id>/articles', LawArticlesView.as_view(), name='law-st-articles'),
-    #######path('laws/<int:law_id>', LawsArticlesView.as_view(), name='law-st-articles'),
-
-
-
-
-
-    # path('laws/<int:law_id>/', LawStView.as_view(), name='law-st'),
-    # path('laws/<int:law_id>/articles/', LawArticlesView.as_view(), name='law-st-articles'),
-
-
-    #path('api/laws/<int:law_id>/articles/', LawArticlesView.as_view()),  # Для фронтенда через прокси
-    #path('api/laws/', LawListView.as_view(), name='laws-list'),
-    #path('api/laws/<int:law_id>/articles/', LawArticlesView.as_view(), name='law-articles'),
 ]

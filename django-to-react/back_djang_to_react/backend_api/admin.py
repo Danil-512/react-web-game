@@ -4,12 +4,12 @@ from django.contrib import admin
 from .models import (Laws, Articles)
 #, LawsArticles)
 
-from backend_api.models import UsersList, UsersAuthorization, UsersInfo, MyClass1
+from backend_api.models import MyClass1#, UsersList, UsersAuthorization, UsersInfo
 
 # Register your models here.
-admin.site.register(UsersList)
-admin.site.register(UsersAuthorization)
-admin.site.register(UsersInfo)
+# admin.site.register(UsersList)
+# admin.site.register(UsersAuthorization)
+# admin.site.register(UsersInfo)
 admin.site.register(MyClass1)
 #
 # class LawArticleInline(admin.TabularInline):
@@ -30,3 +30,4 @@ admin.site.register(MyClass1)
 #     search_fields = ('title', 'text')  # Поиск
 #     date_hierarchy = 'date'  # Иерархия по дате
 #
+
