@@ -1,46 +1,32 @@
-import os
-from django.conf import settings
-from django.http import FileResponse, HttpResponseBadRequest
-
-from django.core.cache import cache
-from django.http import JsonResponse
 import json
+import requests
+from django.views.decorators.csrf import csrf_protect
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import AllowAny
 
 from django.core.cache import cache
-from django.http import JsonResponse
-from django.contrib.sessions.models import Session
+from rest_framework.permissions import IsAuthenticated
 
-from os import error
-from rest_framework.views import APIView
-from django.db.models import Max
 from django.middleware.csrf import get_token
 from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.http import require_http_methods
-from .serializer import UserRegistrationSerializer, UserLoginSerializer
-from django.contrib.auth.hashers import check_password
 
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
-from rest_framework.response import Response
-
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django.contrib.auth.hashers import make_password
-
 # Модели и сериалайзеры для работы с законами и статьями
-from .models import MyClass1, Laws, Articles, ArticleClauses, RespToArticles #, UsersAccess
-from .serializer import MyClass1Serializer, LawsSerializer, ArticlesSerializer, LawsShortSerializer, ArticlesShortSerializer, ArticleClausesSerializer, RespToArticlesSerializer
+from .serializer import MyClass1Serializer
 
 # Модели и сериалайзеры для работы с авторизацией и регистрацией пользователей
-from .models import CustomUserManager, CustomUser, UserInfo, AccessTypes
-from .serializer import UsersListSerializer, UsersInfoSerializer
+from .models import CustomUser, UserInfo
 
 # Отвечает за отправляемые по сети данные
 from rest_framework.response import Response
 
 # Импорт моих функций
 from .functions_to_auth_and_reg import add_new_user, access_type_create
+
+# Функции для работы с редисом
+from .functions_to_redis import check_user_token_in_redis, debug_redis_sessions, test_redis_connection
+
+base_rest_api_url = 'http://127.0.0.1:7000/rest_api'
 
 # Функция для цветного вывода в консоль
 def color_print(text, color):
@@ -53,103 +39,43 @@ def color_print(text, color):
     print("\033[0m{}".format(''))
 
 
-def debug_redis_sessions(request):
-    """Расширенная версия с логированием процесса"""
-    try:
-        # Логирование текущего состояния
-        print("\n=== DEBUG SESSION INFO ===")
-        print(f"Current session key: {request.session.session_key}")
-        print(f"Session exists in request: {'yes' if hasattr(request, 'session') else 'no'}")
-
-        # Получаем все ключи
-        all_keys = cache.keys('*')
-        print(f"\nAll keys in Redis: {all_keys}")
-
-        # Фильтруем только сессии
-        session_keys = [k for k in all_keys if k.startswith('django.contrib.sessions.cache.')]
-        print(f"\nFound {len(session_keys)} session keys")
-
-        sessions = []
-        for key in session_keys:
-            data = cache.get(key)
-            print(f"\nProcessing key: {key}")
-            print(f"Raw data: {data}")
-
-            try:
-                if isinstance(data, bytes):
-                    data = data.decode('utf-8')
-                if isinstance(data, str):
-                    try:
-                        data = json.loads(data)
-                    except json.JSONDecodeError:
-                        pass
-
-                session_key = key.replace('django.contrib.sessions.cache.', '')
-                sessions.append({
-                    'key': session_key,
-                    'user_id': data.get('_auth_user_id') if isinstance(data, dict) else None,
-                    'data': data
-                })
-            except Exception as e:
-                print(f"Error processing key {key}: {str(e)}")
-                sessions.append({
-                    'key': key,
-                    'error': str(e)
-                })
-
-        return JsonResponse({
-            'status': 'success',
-            'current_session_key': request.session.session_key,
-            'sessions': sessions,
-            'all_redis_keys': all_keys
-        })
-
-    except Exception as e:
-        print(f"\nError in debug_redis_sessions: {str(e)}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
 
-def test_redis_connection(request):
-    """Тестовая функция для проверки работы Redis"""
-    try:
-        # Тестовая запись
-        cache.set('test_key', {'user_id': 1, 'test_data': 'hello'}, timeout=60)
-
-        # Чтение
-        data = cache.get('test_key')
-
-        return JsonResponse({
-            'status': 'success',
-            'data_written': {'user_id': 1, 'test_data': 'hello'},
-            'data_read': data,
-            'keys_in_redis': cache.keys('*')
-        })
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 class CheckSessionView(APIView):
     def get(self, request):
+        print("\n=== Session Check ===")
+        print("Session Key:", request.session.session_key)
+        print("Session Data:", dict(request.session))
+        print("User:", request.user)
+        print("Authenticated:", request.user.is_authenticated)
+
         if request.user.is_authenticated:
             return Response({
                 'is_authenticated': True,
                 'username': request.user.username,
-                'session_key': request.session.session_key
+                'session_key': request.session.session_key,
+                'session_data': dict(request.session)
             })
+
         return Response({
             'is_authenticated': False,
-            'session_key': request.session.session_key if request.session else None
+            'session_key': request.session.session_key if hasattr(request, 'session') else None,
+            'cookies_received': dict(request.COOKIES)
         })
 
 
 class GetCSRFToken(APIView):
     def get(self, request):
+        print('Вызов функции для получения нового токена')
         response = Response()
         origin = request.headers.get('Origin')
         if origin in ["http://localhost:5173", "http://127.0.0.1:5173"]:
             response['Access-Control-Allow-Origin'] = origin
             response['Access-Control-Allow-Credentials'] = 'true'
         get_token(request)  # Это установит CSRF cookie
+        print(f'Новый токен: {request}')
         return response
 
 class MyClass1View(APIView):
@@ -159,8 +85,6 @@ class MyClass1View(APIView):
         if origin in ["http://localhost:5173", "http://127.0.0.1:5173"]:
             response['Access-Control-Allow-Origin'] = origin
             response['Access-Control-Allow-Credentials'] = 'true'
-            response['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRFToken'
-        return response
     def get(self, request):
         # Возвращаем пустой ответ, но с правильными CORS заголовками
         response = Response()
@@ -272,156 +196,68 @@ class GetActualUser(APIView):
 
         return Response(response_data)
 
+from django.middleware.csrf import get_token
+import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
-class LawsListView(APIView):
-    def get(self, request):
-        print('Get request for a list of laws ')
-        # Получение списка объектов (законов)
-        laws = Laws.objects.all().order_by('law_date')
-        # Создание json для ответа клиенту?
-        serializer = LawsSerializer(laws, many=True)
-        print(f'Вывод списка законов пользователю: {serializer.data}')
-        return Response(serializer.data)
-
-# Список статей закона
-class LawArticlesListView(APIView):
-    def get(self, request, p_law_id):
-        print(f'Get request for a list of articles of {p_law_id} law ')
-        # Получение списка статей закона
-        articles = Articles.objects.filter(article_parent_id=p_law_id)
-        print(f'Articles of law list is: {articles}')
-
-        # Создание json для ответа клиенту?
-        serializer = ArticlesShortSerializer(articles, many=True)
-        data_list_dict = serializer.data
-
-        print(f'len(data_list_dict) is {len(data_list_dict)}')
-
-        for i in range(0, len(data_list_dict)):
-            print(f'------------------------ i is {i}')
-
-        # Сделаю цикл по статьям закона и в нем уже буду добавлять ответственность
-        for i in range(0, len(data_list_dict)):
-            print(f'I is: {i}')
-            respToArticle = RespToArticles.objects.filter(resp_article_id=data_list_dict[i]['article_id'])
-            serializerRespToArticles = RespToArticlesSerializer(respToArticle, many=respToArticle.exists())
-            print('serializerRespToArticles is')
-            print(f'{serializerRespToArticles.data}')
-            str_responsobilitys = ''
-
-            for resp_data in serializerRespToArticles.data:
-                if resp_data.get('resp_first_type') == 1:
-                    str_responsobilitys += ' Уголовная'
-                if resp_data.get('resp_second_type') == 1:
-                    str_responsobilitys += ' Административная'
-                if resp_data.get('resp_third_type') == 1:
-                    str_responsobilitys += ' Гражданская'
-                if resp_data.get('resp_fourth_type') == 1:
-                    str_responsobilitys += ' Иная'
-
-
-            print(f'str_responsobilitys is {str_responsobilitys}')
-            data_list_dict[i]['article_responsobility'] = str_responsobilitys
-
-        print(f'Вывод списка законов пользователю: {data_list_dict}')
-        return Response(serializer.data)
-
-# Текст статьи закона
-class ArticleTextListView(APIView):
-    def get(self, request, p_law_id, p_article_id):
-
-        print('-------------------------------------------------------------------------')
-        print(f'Get request for a articles text. {p_law_id} law, {p_article_id} article')
-
-        #law = Laws.objects.get(law_id=p_law_id)
-
-        article = Articles.objects.get(article_number=p_article_id, article_parent_id = p_law_id)
-        # Пункты статьи
-        articleClauses = ArticleClauses.objects.filter(clause_parent_id=article)
-        # Сериалайзер пунктов
-        serializer = ArticleClausesSerializer(articleClauses, many=True)
-        all_text = ''
-        for el in serializer.data:
-            print(f'el is {el}')
-            all_text = f'{all_text}\n'
-            all_text = f'{all_text}Пункт статьи номер: {el['clause_number']}.\n'
-            all_text = f'{all_text}Текст пункта статьи: {el['clause_text']}^;.'
-        print('Текст, отправляемый обратно:')
-        color_print(all_text, 'blue')
-
-        #print(f'serializer.data is: {serializer.data}')
-        return Response(all_text)
-
-
-# Функция добавление новой статьи закону
 class NewArticle(APIView):
+    # authentication_classes = [SessionAuthentication]
+    # permission_classes = [IsAuthenticated]
     def post(self, request, p_law_id):
-        data = request.data
-        print('Запрос на добавление статьи')
-        print(data)
-        print(f'p_law_id is: {p_law_id}')
-        articleTitle = data['articleTitle']
-        print(f'articleTitle is: {articleTitle}')
-        points = data['points']
-        print(f'points is: {points}')
-        responsibilities = data['responsibilities']
+        print("User auth status:", request.user.is_authenticated)
+        print("Session auth:", request.session.get('_auth_user_id'))
+        print("\n=== NewArticle Debug ===")
+        print("User:", request.user)  # Проверка аутентификации
+        print("Data:", request.data)  # Проверка данных
+        print("Headers:", request.headers)
 
-        # Нужно получить новый номер статьи. Взять прошлый максимальный и добавить к нему 1
-        law = Laws.objects.get(law_id=p_law_id)
-        articles = Articles.objects.filter(article_parent_id=law)
-        print(f'Articles of law list is: {articles}')
-        serializer = ArticlesShortSerializer(articles, many=True)
-        print(f'Вывод списка законов пользователю: {serializer.data}')
-        print(f'max_number is: {articles.aggregate(Max('article_number'))['article_number__max']}')
+        csrf_token = request.headers['X-Csrftoken']
+        print(f'csrf_token is: {csrf_token}')
+        # Информация о пользователе
+        print("User:", request.user)
+        print("Is authenticated:", request.user.is_authenticated)
 
-        if articles.aggregate(Max('article_number'))['article_number__max'] is None:
-            new_article_number = 1
-        else:
-            new_article_number = articles.aggregate(Max('article_number'))['article_number__max'] + 1
+        # Информация о сессии
+        session = request.session
+        print("\nSession info:")
+        print("Session key:", session.session_key)
+        print("Session data:", dict(session))
+        print("Session expiry age:", session.get_expiry_age())
+        print("Session expiry date:", session.get_expiry_date())
 
+        # Подготовка данных для второго сервера
+        data = {
+            'articleTitle': request.data.get('articleTitle'),
+            'points': request.data.get('points', []),
+            'responsibilities': request.data.get('responsibilities', {}),
+            'original_user': str(request.user),  # Добавляем информацию о пользователе
+            'original_law_id': p_law_id
+        }
 
-        print(f'responsibilities is: {responsibilities}')
-        new_article = Articles.objects.create(
-            article_parent_id = law,
-            article_number = new_article_number,
-            article_title = articleTitle
-        )
-
-        i = 1
-        # Цикл по пунктам статьи
-        for el in points:
-            print('Добавление пункта статьи')
-            print(f'el is: {el}')
-            clause_number = i
-            clause_text = el['text']
-            ArticleClauses.objects.create(
-                clause_number = clause_number,
-                clause_parent_id = new_article,
-                clause_text = clause_text
+        try:
+            # Отправка на второй сервер
+            response = requests.post(
+                f'http://127.0.0.1:7000/rest_api/laws/{p_law_id}/newArticle/',
+                json=data,  # Автоматически преобразует в JSON и устанавливает Content-Type
+                headers={
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': request.META.get('CSRF_COOKIE', ''),
+                },
+                timeout=5  # Таймаут 5 секунд
             )
-            i = i + 1
 
-        resp_first_type  = 0
-        resp_second_type = 0
-        resp_third_type  = 0
-        resp_fourth_type = 0
+            print(f"Response from secondary server: {response.status_code} - {response.text}")
 
-        if responsibilities['criminal']:
-            resp_first_type = 1
-        if responsibilities['administrative']:
-            resp_second_type = 1
-        if responsibilities['civil']:
-            resp_third_type = 1
-        if responsibilities['other']:
-            resp_fourth_type = 1
+            # Проверяем ответ второго сервера
+            if response.status_code in [200, 201]:
+                return Response('NewArticleOK')
+            else:
+                return Response('NewArticleOK')
 
-        RespToArticles.objects.create(
-            resp_article_id = new_article
-            ,resp_first_type = resp_first_type
-            ,resp_second_type = resp_second_type
-            ,resp_third_type = resp_third_type
-            ,resp_fourth_type = resp_fourth_type
-        )
-
-        return Response('NewArticleOK')
-
+        except requests.exceptions.RequestException as e:
+            print(f"Request to secondary server failed: {str(e)}")
+            return Response({
+                'status': 'error',
+                'message': f'Failed to connect to secondary server: {str(e)}'
+            }, status=503)

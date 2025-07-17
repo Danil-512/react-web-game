@@ -23,7 +23,7 @@ function ArticlesText() {
         // Получение списка статей закона
         console.log("\nОтправдение get запроса с законами 1")
 
-        const textResponse = await axios.get(`http://127.0.0.1:8000/laws/${lawId}/${articleId}`);
+        const textResponse = await axios.get(`http://127.0.0.1:7000/rest_api/laws/${lawId}/${articleId}`);
 
         console.log(`articlesResponse.data is: ${textResponse.data}`);
         const data = textResponse.data 

@@ -14,7 +14,6 @@ import NewArticle from './body/lawsUniversity/NewArticle.jsx'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 
 import LawArticles from './body/lawsUniversity/LawArticles';
-import ArticleDetails from './body/lawsUniversity/ArticleDetails';
 
 
 function App() {

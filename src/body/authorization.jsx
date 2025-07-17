@@ -10,10 +10,7 @@ const backServerPath = 'http://127.0.0.1:8000/';
 // ----------------------------------------------------------------------------------------------------------------------------------------------/
 // /Возвращаемая функция
 function authorization() {
-    // Состояния объектов 
-    const [datas, setDatas] = useState({ details: [], })
-    const [login, setLogin] = useState("");
-    const [password, setPassword] = useState("");
+    // Состояния объектов
     const [status, setStatus] = useState("");
     const navigate = useNavigate();
 

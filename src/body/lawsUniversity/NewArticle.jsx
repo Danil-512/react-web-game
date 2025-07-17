@@ -8,9 +8,6 @@ import { useNavigate } from 'react-router-dom';
 // Список статей по закону, передаваемому в параметре
 function NewArticle() {
   const { lawId } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
   const [articleTitle, setarticleTitle] = useState(null);
   const [points, setPoints] = useState(['']); // Для добавления пунктов на странице
   const [responsibilities, setResponsibilities] = useState(
@@ -21,10 +18,10 @@ function NewArticle() {
       other: false
     }
   );
+  const [errorMessage, setErrorMessage] = useState(null); // Состояние для хранения ошибки
 
 
   const handleClearPointClick = async () => {
-    //parent = document.querySelector('#parent');
     setPoints(['']);
     setResponsibilities({
       criminal: false,
@@ -65,37 +62,57 @@ function NewArticle() {
     }));
   };
 
+
+// // Получение CSRF токена
+// const getCSRFToken = () => {
+//   return document.cookie
+//     .split('; ')
+//     .find(row => row.startsWith('csrftoken='))
+//     ?.split('=')[1] || '';
+// };
+
+// Функция для получения CSRF-токена из кук
+const getCSRFToken = () => {
+    const cookieValue = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+    return cookieValue ? cookieValue.pop() : '';
+};
+
   
  
   // Функция для отправления списка пунктов статьи на сервер
-  const addPonts = async () => {
-    // Формируем массив объектов с пунктами и их ответственностями
-    const postData = points.map((point, index) => ({
-      text: point,
-    }));
+const addPoints = async () => {
+  setErrorMessage(null);
+  console.log('Current cookies:', document.cookie);
 
-    // Фильтруем пустые пункты
-    const filteredData = postData.filter(item => item.text.trim() !== '');
+  setErrorMessage(null);
+  
+  const csrfToken = getCSRFToken();
+  console.log('CSRF Token:', csrfToken); // Для отладки
 
-    console.log('Отправления нового списка статей на сервер.');
+  const postData = {
+    articleTitle: articleTitle || '',
+    points: points.filter(p => p.trim() !== '').map(p => ({ text: p })),
+    responsibilities: responsibilities
+  };
 
-    // /-------------------------------------------------------------------------------------------------------
-    // /axios post
-    console.log("Новый пункт. Начало отправки")
-    let status1 = "NewArticleNOTOK"
-    console.log(`Отправляемые данные: ${{ points: filteredData }}`)
-
-    const response = await axios.post(`http://127.0.0.1:8000/laws/${lawId}/newArticle/`
-                                    ,{ 
-                                      articleTitle: articleTitle,
-                                      points: filteredData,
-                                      responsibilities: responsibilities
-                                    }); 
-
-    console.log(`Response is: ${response.data}`);
-
-    if (response.data == 'NewArticleOK') {
-      console.log('Статья добавлена');
+  try {
+    const response = await axios.post(
+      `http://127.0.0.1:8000/laws/${lawId}/newArticle/`,
+      postData,
+      {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/json',
+        },
+        xsrfCookieName: 'csrftoken',
+        xsrfHeaderName: 'X-CSRFToken',
+      }
+    );
+    
+    if (response.data === 'NewArticleOK') {
+      setErrorMessage('Статья успешно добавлена');
+      // Сброс формы
       setPoints(['']);
       setarticleTitle('');
       setResponsibilities({
@@ -104,19 +121,52 @@ function NewArticle() {
         civil: false,
         other: false
       });
+    } else {
+      setErrorMessage('Неизвестная ошибка при добавлении статьи');
     }
-    // axios post/
-    // -------------------------------------------------------------------------------------------------------/
+    console.log('Response:', response.data);
+    // Обработка успешного ответа
+  } catch (error) {
+    // Обработка ошибок
+    console.error('Error:', error);
+    if (error.response) {
+      if (error.response.status === 401) {
+        setErrorMessage('Ошибка: Вы не авторизованы. Пожалуйста, войдите снова.');
+      } else {
+        setErrorMessage(`Ошибка сервера: ${error.response.status}`);
+      }
+    } else {
+      setErrorMessage('Не удалось подключиться к серверу');
+    }
   }
+};
 
   const handleNametChange = (e) => {
     setarticleTitle(e)
-    console.log('Название статьи:', articleTitle)
+    //console.log('Название статьи:', articleTitle)
   }
 
   return (
     <div className="new-article-div">
       <h2>Добавление новой статьи</h2>
+      <p>ㅤ</p>
+
+      {errorMessage && (
+        <div style={{ 
+          color: 'red', 
+          padding: '10px', 
+          margin: '10px 0', 
+          border: '1px solid red',
+          borderRadius: '4px'
+        }}>
+          {errorMessage}
+          {errorMessage.includes('аутентификации') && (
+            <div>
+              <a href="/auth" style={{ color: 'blue' }}>Перейти на страницу входа</a>
+            </div>
+          )}
+        </div>
+      )}
       <span>
         Название статьи
       </span>
@@ -165,12 +215,13 @@ function NewArticle() {
           </div>
 
       <div id="parent"></div>
+      <p>ㅤ</p>
       <button onClick={handleNewPointClick}>Новый пункт статьи</button>
       <button onClick={handleClearPointClick}>Очистить</button>
 
 
       {/* Демонстрация введеных значений */}
-      <div>
+      {/* <div>
         <h3>Текущие пункты:</h3>
         <ul>
           {points.map((point, index) => (
@@ -191,9 +242,10 @@ function NewArticle() {
                 !responsibilities?.civil && 
                 !responsibilities?.other && "Не указана"}
               </div>
-      </div>
+      </div> */}
       
-      <button onClick={addPonts}>
+      <p>ㅤ</p>
+      <button onClick={addPoints}>
         Добавить статьи
       </button>
     </div>

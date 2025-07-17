@@ -90,7 +90,7 @@ function LawArticles() {
         // Получение списка статей закона
         console.log("\nОтправдение get запроса с законами 1")
 
-        const articlesResponse = await axios.get(`http://127.0.0.1:8000/laws/${lawId}`);
+        const articlesResponse = await axios.get(`http://127.0.0.1:7000/rest_api/laws/${lawId}`);
 
         console.log(`/api/laws/${lawId}`);
   

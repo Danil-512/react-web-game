@@ -16,7 +16,7 @@ function MainWindow() {
         const fetchLaws = async () => {
         try {
             //const response = await axios.get('/api/laws');
-            const response = await axios.get('http://127.0.0.1:8000/laws');
+            const response = await axios.get('http://127.0.0.1:7000/rest_api/laws');
 
             console.log(response.data)
 

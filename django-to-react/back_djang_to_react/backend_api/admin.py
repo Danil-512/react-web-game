@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from django.contrib import admin
-from .models import (Laws, Articles)
+#from .models import (Laws, Articles)
 #, LawsArticles)
 
 from backend_api.models import MyClass1#, UsersList, UsersAuthorization, UsersInfo

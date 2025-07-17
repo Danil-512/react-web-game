@@ -19,30 +19,42 @@ ALLOWED_HOSTS = []
 
 
 
-# Настройки кук
-SESSION_COOKIE_NAME = 'sessionid'
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"  # Используем и кэш и БД
+SESSION_COOKIE_NAME = "sessionid"
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # True в production
-SESSION_COOKIE_SAMESITE = 'None'  # Важно для кросс-доменных запросов
-SESSION_COOKIE_DOMAIN = 'localhost'  # Явно укажите домен
+SESSION_COOKIE_SECURE = False  # True для HTTPS
+SESSION_COOKIE_SAMESITE = "Lax"  # Для кросс-доменных запросов
+SESSION_COOKIE_DOMAIN = None  # Уберите явное указание домена
+SESSION_COOKIE_AGE = 1209600  # 2 недели
 
-CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SECURE = False  # True в production
-CSRF_COOKIE_HTTPONLY = False  # Должно быть False для доступа из JS
-CSRF_COOKIE_DOMAIN = 'localhost'
-
-
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173"
-]
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+# Настройки CSRF
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_DOMAIN = None
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173"
 ]
+
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:7000",
+    "http://localhost:7000",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+
 
 CSRF_USE_SESSIONS = False
 CORS_ALLOW_HEADERS = [
@@ -72,7 +84,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 ]
-
 
 
 MIDDLEWARE = [
@@ -146,6 +157,31 @@ DATABASES = {
         "NAME": 'dbtodjango'
     }
 }
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://redis-to-django:dollarKub@178.159.31.162:6380/0",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+#             "IGNORE_EXCEPTIONS": True,
+#             "KEY_PREFIX": "myproject_",  # Добавьте это
+#             "KEY_FUNCTION": "django_redis.util.default_key_func"  # И это
+#         }
+#     }
+# }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis-to-django:dollarKub@178.159.31.162:6380/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+            "IGNORE_EXCEPTIONS": True,
+        }
+    }
+}
 
 
 
@@ -192,42 +228,28 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGGING = {
     "version": 1,
+    "disable_existing_loggers": False,
     "handlers": {
-        "console": {"class": "logging.StreamHandler"},
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
     },
     "loggers": {
-        "django.request": {"level": "DEBUG", "handlers": ["console"]},
-        "django_redis": {"level": "DEBUG", "handlers": ["console"]},
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
     },
 }
 
-
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://redis-to-django:dollarKub@178.159.31.162:6380/0",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         }
-#     }
-# }
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis-to-django:dollarKub@178.159.31.162:6380/0",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "KEY_PREFIX": "myproject_",  # Добавьте это
-            "KEY_FUNCTION": "django_redis.util.default_key_func"  # И это
-        }
-    }
-}
 
 
 # # Используйте базу данных для сессий в development
 # SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
-# Для сессий используем кэш
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
-SESSION_COOKIE_AGE = 1209 # 2 недели (значение по умолчанию)
+
