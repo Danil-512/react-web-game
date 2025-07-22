@@ -1,9 +1,4 @@
 from rest_framework import serializers
-from .models import MyClass1
-from .models import CustomUserManager
-from .models import CustomUser
-from .models import UserInfo
-from .models import AccessTypes
 from .models import *
 
 

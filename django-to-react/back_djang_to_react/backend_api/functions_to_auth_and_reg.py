@@ -1,4 +1,4 @@
-from .models import CustomUserManager, AccessTypes
+from .models import AccessTypes
 from .serializer import UserAccessSerializer, AccessTypesSerializer
 
 from .models import CustomUser

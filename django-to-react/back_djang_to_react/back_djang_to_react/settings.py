@@ -1,9 +1,7 @@
 from pathlib import Path
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -15,8 +13,6 @@ SECRET_KEY = 'django-insecure-!$!w7q9wueeb-0i*c3k_y3antq*f+s1em9-879f6v#qlis46r%
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-
 
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"  # Используем и кэш и БД
@@ -39,7 +35,6 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173"
 ]
 
-
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -54,8 +49,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
-
-
 CSRF_USE_SESSIONS = False
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -69,9 +62,7 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -104,12 +95,7 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'backend_api.CustomUser'
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.authentication.SessionAuthentication',
-#         'rest_framework.permissions.AllowAny'
-#     ]
-# }
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
@@ -118,7 +104,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',  # Или другие нужные permissions
     ]
 }
-
 
 # Конфликт с куками
 #CORS_ORIGIN_ALLOW_ALL = True
@@ -143,7 +128,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'back_djang_to_react.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -157,19 +141,6 @@ DATABASES = {
         "NAME": 'dbtodjango'
     }
 }
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://redis-to-django:dollarKub@178.159.31.162:6380/0",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
-#             "IGNORE_EXCEPTIONS": True,
-#             "KEY_PREFIX": "myproject_",  # Добавьте это
-#             "KEY_FUNCTION": "django_redis.util.default_key_func"  # И это
-#         }
-#     }
-# }
 
 CACHES = {
     "default": {
@@ -182,9 +153,6 @@ CACHES = {
         }
     }
 }
-
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -204,7 +172,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -215,7 +182,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -247,9 +213,5 @@ LOGGING = {
     },
 }
 
-
-
 # # Используйте базу данных для сессий в development
 # SESSION_ENGINE = "django.contrib.sessions.backends.db"
-
-

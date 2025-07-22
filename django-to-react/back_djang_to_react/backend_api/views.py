@@ -1,13 +1,5 @@
-import json
-import requests
-from django.views.decorators.csrf import csrf_protect
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import AllowAny
-
 from django.core.cache import cache
-from rest_framework.permissions import IsAuthenticated
 
-from django.middleware.csrf import get_token
 from django.contrib.auth import authenticate, login, logout
 
 from rest_framework.views import APIView
@@ -119,12 +111,6 @@ class MyClass1View(APIView):
                         username=v_login,
                         password=v_password
                     )
-                    # if user is not None:
-                    #     login(request, user)
-                    #     print(f"Auth successful for {user.username}")
-                    #     print(f"Session after login: {request.session.session_key}")
-                    #     print(f"Session data: {dict(request.session)}")
-                    #     return Response(f"AuthorizationOK-{user.access_type.access_type_descr}")
                     UserInfo.objects.create(user=user)  # Создаем пустую запись UserInfo
                     return Response("RegisterOK")
                 except Exception as e:
