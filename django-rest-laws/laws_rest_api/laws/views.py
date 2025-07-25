@@ -1,11 +1,14 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import *
 from rest_framework.renderers import JSONRenderer
 
-from .models import Laws, Articles, ArticleClauses, RespToArticles #, UsersAccess
-from .serializer import LawsSerializer, ArticlesSerializer, LawsShortSerializer, ArticlesShortSerializer, ArticleClausesSerializer, RespToArticlesSerializer
+from .models import Laws, Articles, ArticleClauses, RespToArticles
+from .serializer import LawsSerializer, ArticlesShortSerializer, ArticleClausesSerializer, RespToArticlesSerializer
+
+# Эти импорты будут использоваться для ведения документации по методам (url-адресам, к которым привязаны эти методы)
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 # Функция для цветного вывода в консоль
 def color_print(text, color):
@@ -103,6 +106,41 @@ class ArticleTextListView(APIView):
 # Функция добавление новой статьи закону
 class NewArticle(APIView):
     renderer_classes = [JSONRenderer]  # Явное указание шаблона рендера. Без этого, restfr не знает какой выбрать
+
+    # Документация swagger
+    @swagger_auto_schema(
+        operation_description = "Добавление новой статьи к закону",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['articleTitle', 'points', 'responsibilities'],
+            example={
+                "articleTitle": "Новая статья о нарушениях",
+                "points": [
+                    {"text": "Текст первого пункта статьи"},
+                    {"text": "Текст второго пункта статьи"}
+                ],
+                "responsibilities": {
+                    "criminal": True,
+                    "administrative": False,
+                    "civil": True,
+                    "other": False
+                }
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description='Статья успешно добавлена',
+                examples={
+                    'application/json': {
+                        "message": "NewArticleOK"
+                    }
+                }
+            ),
+            400: 'Неверные параметры запроса'
+        }
+    )
+
+
     def post(self, request, p_law_id):
         data = request.data
         print('Запрос на добавление статьи')

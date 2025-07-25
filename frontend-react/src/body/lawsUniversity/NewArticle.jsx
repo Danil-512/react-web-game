@@ -1,9 +1,8 @@
 // LawArticles.jsx (новый компонент)
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import '../body.css';
-import { useNavigate } from 'react-router-dom';
 
 // Список статей по закону, передаваемому в параметре
 function NewArticle() {
@@ -62,14 +61,6 @@ function NewArticle() {
     }));
   };
 
-
-// // Получение CSRF токена
-// const getCSRFToken = () => {
-//   return document.cookie
-//     .split('; ')
-//     .find(row => row.startsWith('csrftoken='))
-//     ?.split('=')[1] || '';
-// };
 
 // Функция для получения CSRF-токена из кук
 const getCSRFToken = () => {
@@ -218,32 +209,6 @@ const addPoints = async () => {
       <p>ㅤ</p>
       <button onClick={handleNewPointClick}>Новый пункт статьи</button>
       <button onClick={handleClearPointClick}>Очистить</button>
-
-
-      {/* Демонстрация введеных значений */}
-      {/* <div>
-        <h3>Текущие пункты:</h3>
-        <ul>
-          {points.map((point, index) => (
-            <li key={index}>
-              {point || `<пустой пункт ${index + 1}>`}
-            </li>
-          ))}
-        </ul>
-        <p>Ответственности:</p>
-        <div>
-                Ответственность: 
-                {responsibilities?.criminal && "Уголовная "}
-                {responsibilities?.administrative && "Административная "}
-                {responsibilities?.civil && "Гражданская "}
-                {responsibilities?.other && "Иная"}
-                {!responsibilities?.criminal && 
-                !responsibilities?.administrative && 
-                !responsibilities?.civil && 
-                !responsibilities?.other && "Не указана"}
-              </div>
-      </div> */}
-      
       <p>ㅤ</p>
       <button onClick={addPoints}>
         Добавить статьи

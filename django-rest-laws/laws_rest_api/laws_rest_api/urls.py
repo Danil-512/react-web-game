@@ -1,5 +1,6 @@
 from django.urls import path
 from laws.views import LawsListView, LawArticlesListView, ArticleTextListView, NewArticle
+from .yasg import urlpatterns as doc_urls
 
 urlpatterns = [
     path('rest_api/laws',                                    LawsListView.as_view(),        name='laws-list'),
@@ -11,3 +12,6 @@ urlpatterns = [
 
     path('rest_api/laws/<int:p_law_id>/newArticle/',         NewArticle.as_view(),          name='new_article')
 ]
+
+# К уже имеющимся адресам, добавить адреса документации
+urlpatterns += doc_urls

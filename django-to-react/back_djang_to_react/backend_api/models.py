@@ -77,10 +77,10 @@ class CustomUser(AbstractUser):
 
 # Модель с дополнительной информацией о пользователе
 class UserInfo(models.Model):
-    user        = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
-    first_name  = models.CharField(max_length=100, blank=True)
-    second_name = models.CharField(max_length=100, blank=True)
-    email       = models.CharField(max_length=100, blank=True)
+    user        = models.OneToOneField (CustomUser, on_delete=models.CASCADE, primary_key=True)
+    first_name  = models.CharField     (max_length=100, blank=True)
+    second_name = models.CharField     (max_length=100, blank=True)
+    email       = models.CharField     (max_length=100, blank=True)
     #
     # Название таблицы в базе данных - информация о пользователе
     class Meta:
