@@ -7,7 +7,7 @@ import '../body.css';
 // Список статей по закону, передаваемому в параметре
 function NewArticle() {
   const { lawId } = useParams();
-  const [articleTitle, setarticleTitle] = useState(null);
+  const [article_title, setarticleTitle] = useState(null);
   const [points, setPoints] = useState(['']); // Для добавления пунктов на странице
   const [responsibilities, setResponsibilities] = useState(
     {
@@ -81,7 +81,7 @@ const addPoints = async () => {
   console.log('CSRF Token:', csrfToken); // Для отладки
 
   const postData = {
-    articleTitle: articleTitle || '',
+    article_title: article_title || '',
     points: points.filter(p => p.trim() !== '').map(p => ({ text: p })),
     responsibilities: responsibilities
   };
@@ -163,7 +163,7 @@ const addPoints = async () => {
       </span>
       <input 
         type="text"
-        value={articleTitle}
+        value={article_title}
         onChange={(e) => handleNametChange(e.target.value)}  
       />
       {points.map((point, index) => (

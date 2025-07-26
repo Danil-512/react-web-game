@@ -214,7 +214,7 @@ class NewArticle(APIView):
 
         # Подготовка данных для второго сервера
         data = {
-            'articleTitle': request.data.get('articleTitle'),
+            'article_title': request.data.get('article_title'),
             'points': request.data.get('points', []),
             'responsibilities': request.data.get('responsibilities', {}),
             'original_user': str(request.user),  # Добавляем информацию о пользователе

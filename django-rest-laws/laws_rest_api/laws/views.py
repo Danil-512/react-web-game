@@ -79,39 +79,91 @@ class LawArticlesListView(APIView):
 # Получение текста статьи закона
 class ArticleTextListView(APIView):
     renderer_classes = [JSONRenderer]  # Явное указание шаблона рендера. Без этого, restfr не знает какой выбрать
+    #
+    # Документация swagger
+    @swagger_auto_schema(
+        operation_description = 'Получение текста статьи закона',
+        manual_parameters = [
+            openapi.Parameter(
+                name        = 'p_law_id'
+               ,in_         = openapi.IN_PATH       # Указывает, что параметр встроен в тело url запроса
+               ,description = 'Ид закона'
+               ,type        = openapi.TYPE_INTEGER
+               ,required    = True                  # Параметр обязателен
+               ,example     = 1                     # Пример параметра
+            ),
+            openapi.Parameter(
+                name        = 'p_article_id'
+               ,in_         = openapi.IN_PATH
+               ,description = 'Ид статьи закона'
+               ,type        = openapi.TYPE_INTEGER
+               ,required    = True
+               ,example     = 1
+            )
+        ],
+        responses = {
+            200: openapi.Response(
+                description = 'Успешный ответ',
+                schema = openapi.Schema(
+                    type = openapi.TYPE_STRING,
+                    example = '''Пункт статьи номер: 1.
+                                 Текст пункта статьи: sgrhtdyfghkj^;.
+                                 Пункт статьи номер: 2.
+                                 Текст пункта статьи: yrtukyilyilukt.'''
+                )
+            ),
+            400: 'Неверные параметры запроса',
+            404: 'Статья не найдена',
+            500: 'Ошибка сервера'
+        }
+    )
+    #
     def get(self, request, p_law_id, p_article_id):
-
-        print('-------------------------------------------------------------------------')
+        print('\n-------------------------------------------------------------------------')
         print(f'Get request for a articles text. {p_law_id} law, {p_article_id} article')
-
-        #law = Laws.objects.get(law_id=p_law_id)
-
+        #
+        # Получение статьи
         article = Articles.objects.get(article_number=p_article_id, article_parent_id = p_law_id)
-        # Пункты статьи
+        #
+        # Получение пунктов статьи
         articleClauses = ArticleClauses.objects.filter(clause_parent_id=article)
-        # Сериалайзер пунктов
+        #
+        # Сериализация полученных пунктов (преобразование в JSON-подобный формат - список словарей)
         serializer = ArticleClausesSerializer(articleClauses, many=True)
+        #
+        # Переменная для хранения отправляемого теста
         all_text = ''
+        #
+        # Цикл с заполнением отправляемой переменной
         for el in serializer.data:
-            print(f'el is {el}')
-            all_text = f'{all_text}\n'
             all_text = f'{all_text}Пункт статьи номер: {el['clause_number']}.\n'
             all_text = f'{all_text}Текст пункта статьи: {el['clause_text']}^;.'
-        print('Текст, отправляемый обратно:')
+        #
+        # Вывод в консоль (в будущем добавить в логирование!)
+        print(f'\nВызов метода get класса {self.__class__.__name__}. Отправляемый текст:')
         color_print(all_text, 'blue')
-
-        #print(f'serializer.data is: {serializer.data}')
+        #
         return Response(all_text)
 
-# Функция добавление новой статьи закону
+# Добавление новой статьи закону
 class NewArticle(APIView):
     renderer_classes = [JSONRenderer]  # Явное указание шаблона рендера. Без этого, restfr не знает какой выбрать
-
+    #
     # Документация swagger
     @swagger_auto_schema(
         operation_description = "Добавление новой статьи к закону",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
+            manual_parameters=[
+                openapi.Parameter(
+                    name='p_law_id'
+                    , in_=openapi.IN_PATH
+                    , description='Ид закона'
+                    , type=openapi.TYPE_INTEGER
+                    , required=True
+                    , example=1
+                ),
+            ],
             required=['articleTitle', 'points', 'responsibilities'],
             example={
                 "articleTitle": "Новая статья о нарушениях",
@@ -136,77 +188,49 @@ class NewArticle(APIView):
                     }
                 }
             ),
-            400: 'Неверные параметры запроса'
+            400: 'Неверные параметры запроса',
+            404: 'Закон не найден',
+            500: 'Ошибка сервера'
         }
     )
-
-
+    #
     def post(self, request, p_law_id):
+        print('\n-------------------------------------------------------------------------')
+        print(f'Post request for adding a new article to the law. {p_law_id} law')
+        #
+        # Переменная с отправленными фронтом данными
         data = request.data
-        print('Запрос на добавление статьи')
-        print(data)
-        print(f'p_law_id is: {p_law_id}')
-        articleTitle = data['articleTitle']
-        print(f'articleTitle is: {articleTitle}')
-        points = data['points']
-        print(f'points is: {points}')
+        #
+        # Вывод в консоль (в будущем добавить в логирование!)
+        print(f'\nВызов метода post класса {self.__class__.__name__}. Отправляемый текст:')
+        color_print(data, 'blue')
+        #
+        # Создание отдельных переменных на разную информацию из запроса и заполнение данными
+        article_title    = data['article_title']
+        points           = data['points']
         responsibilities = data['responsibilities']
-
-        # Нужно получить новый номер статьи. Взять прошлый максимальный и добавить к нему 1
-        law = Laws.objects.get(law_id=p_law_id)
-        articles = Articles.objects.filter(article_parent_id=law)
-        print(f'Articles of law list is: {articles}')
-        serializer = ArticlesShortSerializer(articles, many=True)
-        print(f'Вывод списка законов пользователю: {serializer.data}')
-        print(f'max_number is: {articles.aggregate(Max('article_number'))['article_number__max']}')
-
-        if articles.aggregate(Max('article_number'))['article_number__max'] is None:
-            new_article_number = 1
-        else:
-            new_article_number = articles.aggregate(Max('article_number'))['article_number__max'] + 1
-
-
-        print(f'responsibilities is: {responsibilities}')
+        #
+        # Создание новой статьи в базе + получение переменной с ее данными
         new_article = Articles.objects.create(
-            article_parent_id = law,
-            article_number = new_article_number,
-            article_title = articleTitle
+            article_parent_id = p_law_id,
+            article_title = article_title
         )
-
-        i = 1
-        # Цикл по пунктам статьи
+        #
+        # Цикл по полученным из запроса пунктам статьи - создание новых пунктов в базе
         for el in points:
-            print('Добавление пункта статьи')
-            print(f'el is: {el}')
-            clause_number = i
             clause_text = el['text']
             ArticleClauses.objects.create(
-                clause_number = clause_number,
                 clause_parent_id = new_article,
                 clause_text = clause_text
             )
-            i = i + 1
-
-        resp_first_type  = 0
-        resp_second_type = 0
-        resp_third_type  = 0
-        resp_fourth_type = 0
-
-        if responsibilities['criminal']:
-            resp_first_type = 1
-        if responsibilities['administrative']:
-            resp_second_type = 1
-        if responsibilities['civil']:
-            resp_third_type = 1
-        if responsibilities['other']:
-            resp_fourth_type = 1
-
+        #
+        #
         RespToArticles.objects.create(
-            resp_article_id = new_article
-            ,resp_first_type = resp_first_type
-            ,resp_second_type = resp_second_type
-            ,resp_third_type = resp_third_type
-            ,resp_fourth_type = resp_fourth_type
+            resp_article_id  = new_article
+           ,resp_first_type  = 1 if responsibilities['criminal'] else 0
+           ,resp_second_type = 1 if responsibilities['administrative'] else 0
+           ,resp_third_type  = 1 if responsibilities['civil'] else 0
+           ,resp_fourth_type = 1 if responsibilities['other'] else 0
         )
 
         return Response('NewArticleOK')

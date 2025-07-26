@@ -6,7 +6,7 @@ urlpatterns = [
     path('rest_api/laws',                                    LawsListView.as_view(),        name='laws-list'),
     path('rest_api/laws/',                                   LawsListView.as_view(),        name='laws-list'),
 
-    path('rest_api/laws/<int:p_law_id>/',                    LawArticlesListView.as_view(), name='law-articles-list'),
+    path('rest_api/laws/<int:p_law_id>/',                    LawArticlesListView.as_view(), name='articles-list'),
 
     path('rest_api/laws/<int:p_law_id>/<int:p_article_id>/', ArticleTextListView.as_view(), name='article_text'),
 
