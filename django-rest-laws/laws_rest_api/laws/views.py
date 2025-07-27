@@ -1,6 +1,5 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import *
 from rest_framework.renderers import JSONRenderer
 
 from .models import Laws, Articles, ArticleClauses, RespToArticles
@@ -23,42 +22,96 @@ def color_print(text, color):
 # Получение списка законов - первая страница
 class LawsListView(APIView):
     renderer_classes = [JSONRenderer] # Явное указание шаблона рендера. Без этого, restfr не знает какой выбрать
+    #
+    # Документация swagger
+    @swagger_auto_schema(
+        operation_description='Получение списка законов',
+        responses={
+            200: openapi.Response(
+                description='Успешный ответ',
+                    schema=openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        example='''[{'law_id': 1, 'law_number': '149-ФЗ', 'law_title': 'Об информации, информационных технологиях и о защите информации', 'law_date': '2006-07-27'}]'''
+                    )
+            ),
+            400: 'Ошибка в запросе',
+            404: 'Законы не найдены',
+            500: 'Ошибка сервера'
+        }
+    )
+    #
     def get(self, request):
+        color_print('\n/----------------------------------------------------------------------------------\n', 'red')
         print('Get request for a list of laws ')
-        # Получение списка законов
+        #
+        # Получение списка законов из базы с сортировкой по дате принятия
         laws = Laws.objects.all().order_by('law_date')
-        # Создание json для ответа клиенту?
+        #
+        # Создание json для ответа клиенту
         serializer = LawsSerializer(laws, many=True)
-        print(f'Вывод списка законов пользователю: {serializer.data}')
+        #
+        # Вывод в консоль (в будущем добавить в логирование!)
+        print(f'\nВызов метода get класса {self.__class__.__name__}. Отправляемый текст:')
+        color_print(serializer.data, 'blue')
+        #
+        color_print('\n----------------------------------------------------------------------------------/\n', 'red')
         return Response(serializer.data)
 
 # Получение списка статей закона
 class LawArticlesListView(APIView):
     renderer_classes = [JSONRenderer] # Явное указание шаблона рендера. Без этого, restfr не знает какой выбрать
+    #
+    # Документация swagger
+    @swagger_auto_schema(
+        operation_description='Получение списка статей закона',
+        manual_parameters=[
+            openapi.Parameter(
+                name='p_law_id'
+                , in_=openapi.IN_PATH  # Указывает, что параметр встроен в тело url запроса
+                , description='Ид закона'
+                , type=openapi.TYPE_INTEGER
+                , required=True  # Параметр обязателен
+                , example=1  # Пример параметра
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description='Успешный ответ',
+                schema=openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    example='''[{'article_id': 1, 'article_number': 1, 'article_title': 'Первый пункт статьи', 'article_descr': 'Описание пункта статьи', 'article_responsobility': ' Административная Гражданская'}
+                               ,{'article_id': 2, 'article_number': 2, 'article_title': 'Второй пункт статьи', 'article_descr': 'Описание пункта статьи', 'article_responsobility': ' Административная'}]'''
+                )
+            ),
+            400: 'Неверные параметры запроса',
+            404: 'Статьи не найдены',
+            500: 'Ошибка сервера'
+        }
+    )
+    #
     def get(self, request, p_law_id):
+        color_print('\n/----------------------------------------------------------------------------------', 'red')
         print(f'Get request for a list of articles of {p_law_id} law ')
-        # Получение списка статей закона
+        #
+        # Получение списка статей закона из базы
         articles = Articles.objects.filter(article_parent_id=p_law_id)
-        print(f'Articles of law list is: {articles}')
-
-        # Создание json для ответа клиенту?
+        #
+        # Создание json для ответа клиенту
         serializer = ArticlesShortSerializer(articles, many=True)
         data_list_dict = serializer.data
-
-        print(f'len(data_list_dict) is {len(data_list_dict)}')
-
+        #
+        # Цикл по статьям закона. В нем добавляются ответственности к списку статей
         for i in range(0, len(data_list_dict)):
-            print(f'------------------------ i is {i}')
-
-        # Сделаю цикл по статьям закона и в нем уже буду добавлять ответственность
-        for i in range(0, len(data_list_dict)):
-            print(f'I is: {i}')
+            # Получение списка ответвенностей по статьям
             respToArticle = RespToArticles.objects.filter(resp_article_id=data_list_dict[i]['article_id'])
+            #
+            # Получения списка словарей (json) из данных с базы
             serializerRespToArticles = RespToArticlesSerializer(respToArticle, many=respToArticle.exists())
-            print('serializerRespToArticles is')
-            print(f'{serializerRespToArticles.data}')
+            #
+            # Переменная, в которую будут записаны виды ответственности за нарушение статьи
             str_responsobilitys = ''
-
+            #
+            # Добавление видов ответственности в переменную
             for resp_data in serializerRespToArticles.data:
                 if resp_data.get('resp_first_type') == 1:
                     str_responsobilitys += ' Уголовная'
@@ -68,12 +121,15 @@ class LawArticlesListView(APIView):
                     str_responsobilitys += ' Гражданская'
                 if resp_data.get('resp_fourth_type') == 1:
                     str_responsobilitys += ' Иная'
-
-
-            print(f'str_responsobilitys is {str_responsobilitys}')
+            #
+            # Добавление в список словаря с ответственностью
             data_list_dict[i]['article_responsobility'] = str_responsobilitys
-
-        print(f'Вывод списка законов пользователю: {data_list_dict}')
+        #
+        # Вывод в консоль (в будущем добавить в логирование!)
+        print(f'\nВызов метода get класса {self.__class__.__name__}. Отправляемый текст:')
+        color_print(serializer.data, 'blue')
+        #
+        color_print('----------------------------------------------------------------------------------/\n', 'red')
         return Response(serializer.data)
 
 # Получение текста статьи закона
@@ -119,7 +175,7 @@ class ArticleTextListView(APIView):
     )
     #
     def get(self, request, p_law_id, p_article_id):
-        print('\n-------------------------------------------------------------------------')
+        color_print('\n/----------------------------------------------------------------------------------', 'red')
         print(f'Get request for a articles text. {p_law_id} law, {p_article_id} article')
         #
         # Получение статьи
@@ -143,6 +199,7 @@ class ArticleTextListView(APIView):
         print(f'\nВызов метода get класса {self.__class__.__name__}. Отправляемый текст:')
         color_print(all_text, 'blue')
         #
+        color_print('----------------------------------------------------------------------------------/\n', 'red')
         return Response(all_text)
 
 # Добавление новой статьи закону
@@ -195,7 +252,7 @@ class NewArticle(APIView):
     )
     #
     def post(self, request, p_law_id):
-        print('\n-------------------------------------------------------------------------')
+        color_print('\n/----------------------------------------------------------------------------------', 'red')
         print(f'Post request for adding a new article to the law. {p_law_id} law')
         #
         # Переменная с отправленными фронтом данными
@@ -224,7 +281,7 @@ class NewArticle(APIView):
                 clause_text = clause_text
             )
         #
-        #
+        # Добавление новой статьи в базу
         RespToArticles.objects.create(
             resp_article_id  = new_article
            ,resp_first_type  = 1 if responsibilities['criminal'] else 0
@@ -232,5 +289,6 @@ class NewArticle(APIView):
            ,resp_third_type  = 1 if responsibilities['civil'] else 0
            ,resp_fourth_type = 1 if responsibilities['other'] else 0
         )
-
+        #
+        color_print('----------------------------------------------------------------------------------/\n', 'red')
         return Response('NewArticleOK')

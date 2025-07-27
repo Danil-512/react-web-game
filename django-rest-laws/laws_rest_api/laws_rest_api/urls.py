@@ -3,7 +3,6 @@ from laws.views import LawsListView, LawArticlesListView, ArticleTextListView, N
 from .yasg import urlpatterns as doc_urls
 
 urlpatterns = [
-    path('rest_api/laws',                                    LawsListView.as_view(),        name='laws-list'),
     path('rest_api/laws/',                                   LawsListView.as_view(),        name='laws-list'),
 
     path('rest_api/laws/<int:p_law_id>/',                    LawArticlesListView.as_view(), name='articles-list'),
