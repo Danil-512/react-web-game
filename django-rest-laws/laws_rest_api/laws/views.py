@@ -101,12 +101,12 @@ class LawArticlesListView(APIView):
         data_list_dict = serializer.data
         #
         # Цикл по статьям закона. В нем добавляются ответственности к списку статей
-        for i in range(0, len(data_list_dict)):
+        for article_data in data_list_dict:
             # Получение списка ответвенностей по статьям
-            respToArticle = RespToArticles.objects.filter(resp_article_id=data_list_dict[i]['article_id'])
+            respToArticle = RespToArticles.objects.filter(resp_article_id=article_data['article_id'])
             #
             # Получения списка словарей (json) из данных с базы
-            serializerRespToArticles = RespToArticlesSerializer(respToArticle, many=respToArticle.exists())
+            serializerRespToArticles = RespToArticlesSerializer(respToArticle, many=True)
             #
             # Переменная, в которую будут записаны виды ответственности за нарушение статьи
             str_responsobilitys = ''
@@ -123,7 +123,7 @@ class LawArticlesListView(APIView):
                     str_responsobilitys += ' Иная'
             #
             # Добавление в список словаря с ответственностью
-            data_list_dict[i]['article_responsobility'] = str_responsobilitys
+            article_data['article_responsobility'] = str_responsobilitys
         #
         # Вывод в консоль (в будущем добавить в логирование!)
         print(f'\nВызов метода get класса {self.__class__.__name__}. Отправляемый текст:')

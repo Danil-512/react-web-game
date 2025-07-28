@@ -74,6 +74,8 @@ INSTALLED_APPS = [
     'backend_api',
     'rest_framework',
     'corsheaders',
+    # Для ведения документации
+    'drf_yasg',
 ]
 
 

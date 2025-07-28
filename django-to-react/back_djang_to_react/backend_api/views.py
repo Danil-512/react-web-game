@@ -18,7 +18,12 @@ from .functions_to_auth_and_reg import add_new_user, access_type_create
 # Функции для работы с редисом
 from .functions_to_redis import check_user_token_in_redis, debug_redis_sessions, test_redis_connection
 
-base_rest_api_url = 'http://127.0.0.1:7000/rest_api'
+from django.middleware.csrf import get_token
+import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+base_rest_api_url = 'http://127.0.0.1:7000/rest_api/'
 
 # Функция для цветного вывода в консоль
 def color_print(text, color):
@@ -30,11 +35,7 @@ def color_print(text, color):
         print("\033[33m{}".format(text))
     print("\033[0m{}".format(''))
 
-
-
-
-
-
+# Получение данных о текущей сессии - проверка авторизации пользователя
 class CheckSessionView(APIView):
     def get(self, request):
         print("\n=== Session Check ===")
@@ -173,19 +174,13 @@ class GetActualUser(APIView):
         response_data = {
             'is_authenticated': True,
             'login': user.username,
-            # 'accessLevel': user.access_type.access_type_id,
             'access_description': user.access_type.access_type_descr,
-            # 'firstName': user.userinfo.first_name if hasattr(user, 'userinfo') else '',
-            # 'lastName': user.userinfo.second_name if hasattr(user, 'userinfo') else '',
-            # 'email': user.userinfo.email if hasattr(user, 'userinfo') else ''
         }
 
         return Response(response_data)
 
-from django.middleware.csrf import get_token
-import requests
-from rest_framework.views import APIView
-from rest_framework.response import Response
+
+
 
 class NewArticle(APIView):
     # authentication_classes = [SessionAuthentication]
@@ -224,7 +219,7 @@ class NewArticle(APIView):
         try:
             # Отправка на второй сервер
             response = requests.post(
-                f'http://127.0.0.1:7000/rest_api/laws/{p_law_id}/newArticle/',
+                f'{base_rest_api_url}laws/{p_law_id}/newArticle/',
                 json=data,  # Автоматически преобразует в JSON и устанавливает Content-Type
                 headers={
                     'Content-Type': 'application/json',
