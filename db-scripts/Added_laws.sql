@@ -24,3 +24,25 @@ begin
 	--
     commit;
 end $$;
+
+select * from public.rest_laws rl 
+
+select * from public.rest_articles ra 
+
+select * from public.rest_articles_clauses rac 
+
+select * from public.rest_resp_to_articles
+
+SELECT *
+FROM public.rest_responsibility_types;
+
+insert into public.rest_responsibilitys
+(responsibility_id, responsibility_type)
+values
+(1, 'Уголовная')
+,(2, 'Административная')
+,(3, 'Гражданская')
+,(4, 'Трудовая')
+,(1, 'Иная')
+
+

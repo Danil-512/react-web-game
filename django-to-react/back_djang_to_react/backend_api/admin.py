@@ -4,13 +4,12 @@ from django.contrib import admin
 #from .models import (Laws, Articles)
 #, LawsArticles)
 
-from backend_api.models import MyClass1#, UsersList, UsersAuthorization, UsersInfo
+from backend_api.models import *
 
 # Register your models here.
 # admin.site.register(UsersList)
 # admin.site.register(UsersAuthorization)
 # admin.site.register(UsersInfo)
-admin.site.register(MyClass1)
 #
 # class LawArticleInline(admin.TabularInline):
 #     model = LawsArticles

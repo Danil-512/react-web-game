@@ -2,9 +2,8 @@ from django.core.cache import cache
 
 from django.contrib.auth import authenticate, login, logout
 
-from rest_framework.views import APIView
 # Модели и сериалайзеры для работы с законами и статьями
-from .serializer import MyClass1Serializer
+from .serializer import UserLoginPasswordSerializer
 
 # Модели и сериалайзеры для работы с авторизацией и регистрацией пользователей
 from .models import CustomUser, UserInfo
@@ -21,7 +20,9 @@ from .functions_to_redis import check_user_token_in_redis, debug_redis_sessions,
 from django.middleware.csrf import get_token
 import requests
 from rest_framework.views import APIView
-from rest_framework.response import Response
+# Импорт для использования стандартных htpp статусов в ответах
+from rest_framework import status
+
 
 base_rest_api_url = 'http://127.0.0.1:7000/rest_api/'
 
@@ -84,6 +85,9 @@ class MyClass1View(APIView):
         response['Access-Control-Allow-Origin'] = request.headers.get('Origin', 'http://localhost:5173')
         response['Access-Control-Allow-Credentials'] = 'true'
         return response
+
+# Авторизация пользователя
+class AuthorizationUser(APIView):
     def post(self, request):
         print("\n=== ИНФОРМАЦИЯ О СЕССИИ ===")
         print(f"Session Key: {request.session.session_key}")
@@ -94,66 +98,104 @@ class MyClass1View(APIView):
         print("=========================\n")
         print("-----------------------------------------")
         print("Request data:", request.data)
-        serializer = MyClass1Serializer(data=request.data)
+        #
+        serializer = UserLoginPasswordSerializer(data=request.data)
+        #
+        # Если полученные данные не соответствуют формату сериалайзера, то фреймворк автоматически вернет ошибку 400 с информацией об ошибке
+        serializer.is_valid(raise_exception=True)
+        #
+        # Получение переменных с логином и паролем из сериалайзера
+        v_login    = serializer.validated_data['userLogin']
+        v_password = serializer.validated_data['userPassword']
+        #
+        # Аутентификация - проверка правильности логина и пароля
+        user_data  = authenticate(request, username=v_login, password=v_password)
+        #
+        # Если пользователь имеет право доступа, даем ему доступ
+        if user_data is not None:
+            # Перед логином
+            print(f"\nBEFORE LOGIN: Session exists: {'yes' if hasattr(request, 'session') else 'no'}")
+            if hasattr(request, 'session'):
+                print(f"Session key before: {request.session.session_key}")
+                print(f"Session data before: {dict(request.session)}")
 
-        if serializer.is_valid(raise_exception=True):
-            v_type = serializer.validated_data['type']
-            print(f'Получен запрос типа: {v_type}')
+            # Логин и сохранение
+            login(request, user_data)
+            request.session.modified = True  # Важно!
+            request.session.save()
 
-            if v_type == "register":
-                v_login = serializer.validated_data['data1']
-                v_password = serializer.validated_data['data2']
+            # После логина
+            print(f"\nAFTER LOGIN: Session key: {request.session.session_key}")
+            print(f"Session data: {dict(request.session)}")
+            print(f"User authenticated: {request.user.is_authenticated}")
+            #
+            # Проверка записи в Redis
+            redis_key = f'django.contrib.sessions.cache.{request.session.session_key}'
+            session_data = cache.get(redis_key)
+            print(f"Data in Redis: {session_data}")
+            #
+            #return Response(f"AuthorizationOK-{user_data.access_type.access_type_descr}")
+            # Пользователь успешно авторизован
+            return Response(
+                {
+                    "message": "Авторизация успешна",
+                    "access_type": user_data.access_type.access_type_descr
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            print(f"Ошибка авторизации!")
+            #
+            return Response(
+                {"error": "Неверный логин или пароль"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
-                if len(v_password) < 6 or len(v_login) < 6:
-                    return Response('RegisterNOTOK')
 
-                try:
-                    user = CustomUser.objects.create_user(
-                        username=v_login,
-                        password=v_password
-                    )
-                    UserInfo.objects.create(user=user)  # Создаем пустую запись UserInfo
-                    return Response("RegisterOK")
-                except Exception as e:
-                    print(f"Ошибка регистрации: {str(e)}")
-                    return Response("RegisterNOTOK")
-
-
-            if v_type == "exit":
-                # Изменено: используем стандартный logout Django
-                logout(request)
-                print("Выход из аккаунта")
-                return Response("ExitOK")
-
-            if v_type == "authorization":
-                v_login = serializer.validated_data['data1']
-                v_password = serializer.validated_data['data2']
-
-                user = authenticate(request, username=v_login, password=v_password)
-
-                if user is not None:
-                    # Перед логином
-                    print(f"\nBEFORE LOGIN: Session exists: {'yes' if hasattr(request, 'session') else 'no'}")
-                    if hasattr(request, 'session'):
-                        print(f"Session key before: {request.session.session_key}")
-                        print(f"Session data before: {dict(request.session)}")
-
-                    # Логин и сохранение
-                    login(request, user)
-                    request.session.modified = True  # Важно!
-                    request.session.save()
-
-                    # После логина
-                    print(f"\nAFTER LOGIN: Session key: {request.session.session_key}")
-                    print(f"Session data: {dict(request.session)}")
-                    print(f"User authenticated: {request.user.is_authenticated}")
-
-                    # Проверка записи в Redis
-                    redis_key = f'django.contrib.sessions.cache.{request.session.session_key}'
-                    session_data = cache.get(redis_key)
-                    print(f"Data in Redis: {session_data}")
-
-                    return Response(f"AuthorizationOK-{user.access_type.access_type_descr}")
+class RegisterUser(APIView):
+    def post(self, request):
+        print('Попытка регистрации пользователя RegisterUser.post')
+        #
+        serializer = UserLoginPasswordSerializer(data=request.data)
+        #
+        print(f'request.data is {request.data}')
+        #
+        # Если полученные данные не соответствуют формату сериалайзера, то фреймворк автоматически вернет ошибку 400 с информацией об ошибке
+        serializer.is_valid(raise_exception=True)
+        #
+        # Получение переменных с логином и паролем из сериалайзера
+        v_login = serializer.validated_data['userLogin']
+        v_password = serializer.validated_data['userPassword']
+        #
+        if len(v_password) < 6 or len(v_login) < 6:
+            return Response(
+                {"error": "Логин и пароль должны быть не менее 6 символов!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        #
+        # Попытка регистрации пользователя
+        try:
+            user_data = CustomUser.objects.create_user(
+                username=v_login,
+                password=v_password
+            )
+            #
+            UserInfo.objects.create(user=user_data)  # Создаем пустую запись UserInfo
+            #
+            print(f'Пользователь v_login успешно зарегистрирован ')
+            #
+            return Response(
+                {"message": "Пользователь успешно зарегистрирован!"},
+                status=status.HTTP_201_CREATED
+            )
+        #
+        except Exception as e:
+            print(f"Ошибка регистрации: {str(e)}")
+            #
+            return Response(
+                {"error": "Не удалось зарегистрировать пользователя"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class GetActualUser(APIView):

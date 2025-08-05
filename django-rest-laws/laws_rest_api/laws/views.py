@@ -267,9 +267,12 @@ class NewArticle(APIView):
         points           = data['points']
         responsibilities = data['responsibilities']
         #
+        # Получение закона из базы - используется как внешний ключ
+        law = Laws.objects.get(law_id = p_law_id)
+        #
         # Создание новой статьи в базе + получение переменной с ее данными
         new_article = Articles.objects.create(
-            article_parent_id = p_law_id,
+            article_parent_id = law,
             article_title = article_title
         )
         #

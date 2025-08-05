@@ -4,13 +4,6 @@ from django.contrib.auth.models import BaseUserManager
 # Модели в django - таблицы в базе данных
 # Поля модели - атрибуты отношения в базе данных (столбцы таблицы)
 
-# Base input data model
-class MyClass1(models.Model):
-    # Базовая модель для обработки гет и пут запросов
-    type           = models.CharField(max_length=100)
-    data1          = models.CharField(max_length=300)
-    data2          = models.CharField(max_length=300)
-    data3          = models.CharField(max_length=300)
 
 # Model for types access rights
 class AccessTypes(models.Model):

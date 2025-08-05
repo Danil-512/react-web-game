@@ -6,6 +6,9 @@ import '../body.css';
 import { useNavigate } from 'react-router-dom';
 import './law.css'
 
+
+export const lawsServerPath = import.meta.env.VITE_LAWS_BACK_SERVER_PATH;
+
 // Список статей по закону, передаваемому в параметре
 function ArticlesText() {
   console.log('%cFunction ArticlesText starting.', 'color: red')
@@ -23,7 +26,7 @@ function ArticlesText() {
         // Получение списка статей закона
         console.log("\nОтправдение get запроса с законами 1")
 
-        const textResponse = await axios.get(`http://127.0.0.1:7000/rest_api/laws/${lawId}/${articleId}`);
+        const textResponse = await axios.get(`${lawsServerPath}/rest_api/laws/${lawId}/${articleId}`);
 
         console.log(`articlesResponse.data is: ${textResponse.data}`);
         const data = textResponse.data 
