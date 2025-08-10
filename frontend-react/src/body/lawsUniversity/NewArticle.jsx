@@ -1,6 +1,7 @@
 // NewArticle.jsx
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { postNewArticle } from '../../front_functions/functions.js'
 import axios from 'axios';
 
 import '../body.css';
@@ -105,40 +106,28 @@ function NewArticle() {
     // Попытка отправления на бэк
     try {
       // Отправление запроса на бэк и получение ответа в переменную
-      const response = await axios.post(
-        `${backServerPath}/laws/${lawId}/newArticle/`,
-        postData,
-        {
-          withCredentials: true,
-          headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json',
-          },
-          xsrfCookieName: 'csrftoken',
-          xsrfHeaderName: 'X-CSRFToken',
+      await postNewArticle (lawId, postData).then(function (response) {
+        if (response === 'NewArticleOK') {
+          setErrorMessage('Статья успешно добавлена');
+          //
+          //// Сброс формы
+          setPoints(['']);
+          //
+          setarticleTitle('');
+          //
+          setResponsibilities({
+            criminal: false,
+            administrative: false,
+            civil: false,
+            other: false
+          });
+        } else {
+          setErrorMessage('Неизвестная ошибка при добавлении статьи');
         }
-      );
-      //
-      // Анализ ответа бэка
-      if (response.data === 'NewArticleOK') {
-        setErrorMessage('Статья успешно добавлена');
         //
-        //// Сброс формы
-        setPoints(['']);
-        //
-        setarticleTitle('');
-        //
-        setResponsibilities({
-          criminal: false,
-          administrative: false,
-          civil: false,
-          other: false
-        });
-      } else {
-        setErrorMessage('Неизвестная ошибка при добавлении статьи');
-      }
-      //
-      console.log('Response:', response.data);
+        console.log('Response:', response);
+      })
+
     } catch (error) {
       // Вывод текста ошибки в консоль
       console.error('Error:', error);

@@ -36,6 +36,21 @@ def color_print(text, color):
         print("\033[33m{}".format(text))
     print("\033[0m{}".format(''))
 
+
+# Функция для получения CSRF токена
+class GetCSRFToken(APIView):
+    def get(self, request):
+        print('----------------------------------------------------')
+        print('Вызов функции для получения нового токена')
+        response = Response()
+        origin = request.headers.get('Origin')
+        if origin in ["http://localhost:5173", "http://127.0.0.1:5173"]:
+            response['Access-Control-Allow-Origin'] = origin
+            response['Access-Control-Allow-Credentials'] = 'true'
+        get_token(request)  # Это установит CSRF cookie
+        print(f'Новый токен: {request.data}')
+        return response
+
 # Получение данных о текущей сессии - проверка авторизации пользователя
 class CheckSessionView(APIView):
     def get(self, request):
@@ -60,17 +75,7 @@ class CheckSessionView(APIView):
         })
 
 
-class GetCSRFToken(APIView):
-    def get(self, request):
-        print('Вызов функции для получения нового токена')
-        response = Response()
-        origin = request.headers.get('Origin')
-        if origin in ["http://localhost:5173", "http://127.0.0.1:5173"]:
-            response['Access-Control-Allow-Origin'] = origin
-            response['Access-Control-Allow-Credentials'] = 'true'
-        get_token(request)  # Это установит CSRF cookie
-        print(f'Новый токен: {request}')
-        return response
+
 
 class MyClass1View(APIView):
     def options(self, request, *args, **kwargs):

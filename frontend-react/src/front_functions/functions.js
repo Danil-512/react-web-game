@@ -1,12 +1,34 @@
 import axios from 'axios';
 import { setVariavle, exitVariables} from '../sessionlVariables.js'
-
+import { check_csfr_for_post_request } from './csfr_functions.js'
 
 export const backServerPath = import.meta.env.VITE_MAIN_BACK_SERVER_PATH;
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 axios.defaults.withCredentials = true;  // Все запросы будут с куками
+
+// csrf токен получается при первом get запросе на бэк и хранится в куках браузера.
+// При каждом post запросе должен отправляться csfr токен для определения подленности пользователя
+// Пользователь может первой открыть любую страницу и отправить любой запрос, поэтому в случае отсутствия токена, его нужно получить
+
+export const postNewArticle = async (p_lawId, p_postData) => {
+  const response = await axios.post(
+        `${backServerPath}/laws/${p_lawId}/newArticle/`,
+        p_postData,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFTokenFromCookie(),
+          },
+          xsrfCookieName: 'csrftoken',
+          xsrfHeaderName: 'X-CSRFToken',
+        }
+      );
+  return response.data
+}
+
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /getData - get запрос на сервер для получения списка json данных
@@ -18,7 +40,7 @@ export const getData = async (datas, setDatas) => {
       withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCSRFToken()
+        'X-CSRFToken': getCSRFTokenFromCookie()
       }
     })
     .then(response => {
@@ -64,7 +86,7 @@ export const postExit = async () => {
       withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCSRFToken()
+        'X-CSRFToken': getCSRFTokenFromCookie()
       }
     });
     //
@@ -79,19 +101,15 @@ export const postExit = async () => {
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /postRegister - post запрос на сервер для регистрации пользователя
-export const postRegister = async (login, password) => {
+export const postRegister_1 = async (login, password) => {
   try {
     console.log("Backend path:", backServerPath);
     printSessionInfo();
     //
-    // 2. Получаем CSRF токен из кук
-    const getCSRFToken = () => {
-      const cookieValue = document.cookie
-                                  .split('; ')
-                                  .find(row => row.startsWith('csrftoken='))
-                                  ?.split('=')[1];
-      return cookieValue || '';
-    };
+    // Получение нового csrf токена
+    const backCsrf = await getCSRFTokenFromBack();
+    //
+    console.log(`backCsrf: ${backCsrf}`);
     //
     // Создание переменной с отправляемыми данными
     const postStr = {
@@ -106,7 +124,7 @@ export const postRegister = async (login, password) => {
       {
         withCredentials: true,  // Важно!
         headers: {
-          'X-CSRFToken': getCSRFToken(),
+          'X-CSRFToken': getCSRFTokenFromCookie(),
           'Content-Type': 'application/json'
         }
       }
@@ -115,6 +133,7 @@ export const postRegister = async (login, password) => {
     printSessionInfo();
     //
     // Регистрация прошла успешно
+    console.log('return { success: true, data: response.data };');
     return { success: true, data: response.data };
   } catch (error) {
     console.error("Register error:", error);
@@ -142,6 +161,10 @@ export const postRegister = async (login, password) => {
 // postRegister - post запрос на сервер для регистрации пользователя/
 // ----------------------------------------------------------------------------------------------------------------------------------------------/
 
+// Регистрация с проверкой csfr токена
+export const postRegister = check_csfr_for_post_request(postRegister_1);
+
+
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /postAuthorization - post запрос на сервер для авторизации пользователя
@@ -168,7 +191,7 @@ export const postAuthorization = async (login, password) => {
       {
         withCredentials: true,  // Важно!
         headers: {
-          'X-CSRFToken': getCSRFToken(),
+          'X-CSRFToken': getCSRFTokenFromCookie(),
           'Content-Type': 'application/json'
         }
       }
@@ -221,10 +244,31 @@ export const postAuthorization = async (login, password) => {
 // postAuthorization/
 // ----------------------------------------------------------------------------------------------------------------------------------------------/
 
+// Функция для получения CSRF-токена с бэка
+const getCSRFTokenFromBack = async () => {
+  const response = await axios.get(
+    `${backServerPath}/get-csrf/`, 
+    {withCredentials: true}
+  )
+  //
+  const csrfToken = document.cookie
+                            .split('; ')
+                            .find(row => row.startsWith('csrftoken='))
+                            ?.split('=')[1];
+  //
+  console.log(`getCSRFTokenFromBack. Получен токен ${csrfToken}`);
+  //
+  return csrfToken;
+};
+
 // Функция для получения CSRF-токена из кук
-const getCSRFToken = () => {
-  const cookieValue = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
-  return cookieValue ? cookieValue.pop() : '';
+const getCSRFTokenFromCookie = () => {
+  const cookieValue = document.cookie
+                              .split('; ')
+                              .find(row => row.startsWith('csrftoken='))
+                              ?.split('=')[1];
+  //
+  return cookieValue ? cookieValue : '';
 };
 
 // Функция для вывода информации о сессии и куках
@@ -251,7 +295,7 @@ const checkSession = async () => {
       {
         withCredentials: true,
         headers: {
-          'X-CSRFToken': getCSRFToken()
+          'X-CSRFToken': getCSRFTokenFromCookie()
         }
       }
     );
