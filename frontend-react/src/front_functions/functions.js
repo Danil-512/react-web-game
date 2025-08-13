@@ -1,69 +1,25 @@
-import axios from 'axios';
 import { setVariavle, exitVariables} from '../sessionlVariables.js'
-import { check_csfr_for_post_request } from './csfr_functions.js'
+import { f_Check_CSFR_For_Post_Request, f_Get_CSRF_Token_From_Cookie, f_Send_Post_Request, f_Send_Get_Request } from './csfr_functions.js'
 
 export const backServerPath = import.meta.env.VITE_MAIN_BACK_SERVER_PATH;
 
-axios.defaults.xsrfCookieName = 'csrftoken';
-axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-axios.defaults.withCredentials = true;  // Все запросы будут с куками
+// axios.defaults.xsrfCookieName = 'csrftoken';
+// axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+// axios.defaults.withCredentials = true;  // Все запросы будут с куками
 
 // csrf токен получается при первом get запросе на бэк и хранится в куках браузера.
 // При каждом post запросе должен отправляться csfr токен для определения подленности пользователя
 // Пользователь может первой открыть любую страницу и отправить любой запрос, поэтому в случае отсутствия токена, его нужно получить
 
-export const postNewArticle = async (p_lawId, p_postData) => {
-  const response = await axios.post(
-        `${backServerPath}/laws/${p_lawId}/newArticle/`,
-        p_postData,
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFTokenFromCookie(),
-          },
-          xsrfCookieName: 'csrftoken',
-          xsrfHeaderName: 'X-CSRFToken',
-        }
-      );
+export const f_Post_New_Article = async (p_lawId, p_postData) => {
+  const response = await f_Send_Post_Request(
+    `${backServerPath}/laws/${p_lawId}/newArticle/`,
+    p_postData
+  );
+  //
   return response.data
 }
 
-
-// /----------------------------------------------------------------------------------------------------------------------------------------------
-// /getData - get запрос на сервер для получения списка json данных
-export const getData = async (datas, setDatas) => {
-  try {
-    console.log(`Начат процесс получения данных от ${backServerPath}`);
-    //
-    await axios.get(`${backServerPath}/`, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCSRFTokenFromCookie()
-      }
-    })
-    .then(response => {
-      console.log(`response.data[0] is: ${response.data[0].title}: ${response.data[0].content}`)
-      setDatas({details: response.data});                
-      console.log(`axios: Данные получены от ${backServerPath} получены.`)
-    })
-    .catch(err => {
-      console.log(`axios: Ошибка получения данных от сервера: ${err}.`);
-    });
-    //
-    // Метод map позволяет трансформировать один массив в друго, последовательно обращаясь к каждому элементу
-    // тут он используется для перебора значение массива details
-    console.log(`Вывод данных из datas.details:`)
-    datas.details.forEach(element => {
-      console.log(`datas.details.forEach is: ${element.title}`)
-    });
-  } catch (e) {
-    console.log(e);
-  }
-}
-// getData/
-// ----------------------------------------------------------------------------------------------------------------------------------------------/
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /exitr - post запрос на сервер для выхода из аккаунта
@@ -82,13 +38,10 @@ export const postExit = async () => {
     //
     exitVariables()
     //
-    const response = await axios.post(`${backServerPath}/`, postStr, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCSRFTokenFromCookie()
-      }
-    });
+    const response = await f_Send_Post_Request(
+      `${backServerPath}/`, 
+      postStr
+    );
     //
     return response.data === "ExitOK" 
       ? "ExitOK" 
@@ -101,15 +54,10 @@ export const postExit = async () => {
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /postRegister - post запрос на сервер для регистрации пользователя
-export const postRegister_1 = async (login, password) => {
+const postRegister_1 = async (login, password) => {
   try {
     console.log("Backend path:", backServerPath);
     printSessionInfo();
-    //
-    // Получение нового csrf токена
-    const backCsrf = await getCSRFTokenFromBack();
-    //
-    console.log(`backCsrf: ${backCsrf}`);
     //
     // Создание переменной с отправляемыми данными
     const postStr = {
@@ -117,17 +65,10 @@ export const postRegister_1 = async (login, password) => {
       "userPassword": `${password}`,
     }
     //
-    // 3. Основной запрос на регистрацию
-    const response = await axios.post(
+    // Основной запрос на регистрацию
+    const response = await f_Send_Post_Request(
       `${backServerPath}/reg/`,
-      postStr, 
-      {
-        withCredentials: true,  // Важно!
-        headers: {
-          'X-CSRFToken': getCSRFTokenFromCookie(),
-          'Content-Type': 'application/json'
-        }
-      }
+      postStr
     );
     //
     printSessionInfo();
@@ -137,38 +78,19 @@ export const postRegister_1 = async (login, password) => {
     return { success: true, data: response.data };
   } catch (error) {
     console.error("Register error:", error);
-    //
-    // Если получен ответ - значит ошибка со стороны бэка
-    if (error.response) {
-      const status       = error.response.status;
-      //
-      if (status == 400) {
-        console.error('Ошибка регистрации! Некорректные данные.');
-        return { success: false, error: `Неккорректные данные!` };
-      }
-      else if (status == 500) {
-        console.error('Ошибка регистрации! Ошибка в работе бэка.');
-        return { success: false, error: `Ошибка в работе бэка!` };
-      }
-    } 
-    // Если нет, значит до бэка запрос не дошел
-    else {
-      return { success: false, error: 'Ошибка при подключении к бэку!' };
-    }
-    //throw error;
   }
 };
 // postRegister - post запрос на сервер для регистрации пользователя/
 // ----------------------------------------------------------------------------------------------------------------------------------------------/
-
+//
 // Регистрация с проверкой csfr токена
-export const postRegister = check_csfr_for_post_request(postRegister_1);
+export const postRegister = f_Check_CSFR_For_Post_Request(postRegister_1);
 
 
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------
 // /postAuthorization - post запрос на сервер для авторизации пользователя
-export const postAuthorization = async (login, password) => {
+export const postAuthorization_1 = async (login, password) => {
   try {
     printSessionInfo();
     //
@@ -182,28 +104,14 @@ export const postAuthorization = async (login, password) => {
     //
     console.log("Авторизация. Начало отправки")
     //
-    checkSession();
-    //
     // Отправление запроса на авторизацию и получение ответа в переменную response
-    const response = await axios.post(
+    const response = await f_Send_Post_Request(
       `${backServerPath}/auth/`,
-      postStr,
-      {
-        withCredentials: true,  // Важно!
-        headers: {
-          'X-CSRFToken': getCSRFTokenFromCookie(),
-          'Content-Type': 'application/json'
-        }
-      }
+      postStr
     ); 
     //
     // После успешной авторизации проверьте сессию
-    const sessionCheck = await axios.get(
-      `${backServerPath}/check-session/`, 
-      {
-        withCredentials: true
-      }
-    );
+    const sessionCheck = await f_Send_Get_Request(`${backServerPath}/check-session/`);
     //
     // Вывод полученной информации о сессии - понадобиться при настройке сессий
     console.log('Session check:', sessionCheck.data);
@@ -215,61 +123,19 @@ export const postAuthorization = async (login, password) => {
     //
     printSessionInfo();
     //
-    checkSession();
-    //
     // Авторизация прошла успешно
     return { success: true, data: response.data.message };
   } catch (err) {
-    console.log(`Ошибка авторизации пользователя: ${err}`);
-    //
-    // Если получен ответ - значит ошибка со стороны бэка
-    if (error.response) {
-      const status       = error.response.status;
-      //
-      if (status == 401) {
-        console.error('Ошибка авторизации! Некорректные данные.');
-        return { success: false, error: `Неверный логин или паролье!` };
-      }
-      else if (status == 500) {
-        console.error('Ошибка авторизации! Ошибка в работе бэка.');
-        return { success: false, error: `Ошибка в работе бэка!` };
-      }
-    } 
-    // Если нет, значит до бэка запрос не дошел
-    else {
-      return { success: false, error: 'Ошибка при подключении к бэку!' };
-    }
+    console.error(`Ошибка авторизации пользователя: ${err}`);
   }
 }
 // postAuthorization/
 // ----------------------------------------------------------------------------------------------------------------------------------------------/
+//
+// Авторизация с проверкой csfr токена
+export const postAuthorization = f_Check_CSFR_For_Post_Request(postAuthorization_1);
 
-// Функция для получения CSRF-токена с бэка
-const getCSRFTokenFromBack = async () => {
-  const response = await axios.get(
-    `${backServerPath}/get-csrf/`, 
-    {withCredentials: true}
-  )
-  //
-  const csrfToken = document.cookie
-                            .split('; ')
-                            .find(row => row.startsWith('csrftoken='))
-                            ?.split('=')[1];
-  //
-  console.log(`getCSRFTokenFromBack. Получен токен ${csrfToken}`);
-  //
-  return csrfToken;
-};
 
-// Функция для получения CSRF-токена из кук
-const getCSRFTokenFromCookie = () => {
-  const cookieValue = document.cookie
-                              .split('; ')
-                              .find(row => row.startsWith('csrftoken='))
-                              ?.split('=')[1];
-  //
-  return cookieValue ? cookieValue : '';
-};
 
 // Функция для вывода информации о сессии и куках
 export const printSessionInfo = () => {
@@ -286,21 +152,3 @@ export const printSessionInfo = () => {
   console.log('Session ID:', cookies['sessionid'] || 'Не найден');
   console.log('CSRF Token:', cookies['csrftoken'] || 'Не найден');
 };
-
-// После успешной авторизации сделайте тестовый запрос для проверки сессии
-const checkSession = async () => {
-  try {
-    const response = await axios.get(
-      `${backServerPath}/`,
-      {
-        withCredentials: true,
-        headers: {
-          'X-CSRFToken': getCSRFTokenFromCookie()
-        }
-      }
-    );
-    console.log('Session check:', response.headers);
-  } catch (error) {
-    console.error('Session check failed:', error);
-  }
-}

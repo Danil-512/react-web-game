@@ -1,8 +1,7 @@
 // NewArticle.jsx
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { postNewArticle } from '../../front_functions/functions.js'
-import axios from 'axios';
+import { f_Post_New_Article } from '../../front_functions/functions.js'
 
 import '../body.css';
 
@@ -106,7 +105,7 @@ function NewArticle() {
     // Попытка отправления на бэк
     try {
       // Отправление запроса на бэк и получение ответа в переменную
-      await postNewArticle (lawId, postData).then(function (response) {
+      await f_Post_New_Article (lawId, postData).then(function (response) {
         if (response === 'NewArticleOK') {
           setErrorMessage('Статья успешно добавлена');
           //
