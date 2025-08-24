@@ -1,7 +1,7 @@
 // NewArticle.jsx
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { f_Post_New_Article } from '../../front_functions/functions.js'
+import { postNewArticle } from '../../front_functions/functions.js'
 
 import '../body.css';
 
@@ -75,61 +75,52 @@ function NewArticle() {
     }));
   };
   //
-  // Функция для получения CSRF-токена из кук
-  const getCSRFToken = () => {
-    // Получения csrf токена из кук
-    const cookieValue = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
-    //
-    return cookieValue ? cookieValue.pop() : '';
-  };
-  //
   // Функция для отправления списка пунктов статьи на сервер
   const addPoints = async () => {
     // Обнуление текста ошибки
     setErrorMessage(null);
-    //
-    console.log('Current cookies:', document.cookie);
-    //
-    // Получение текущего csrf токена из кук
-    const csrfToken = getCSRFToken();
-    //
-    console.log('CSRF Token:', csrfToken);
     //
     // Создание объекта для последующего отправления на бэк
     const postData = {
       article_title: article_title || '',
       points: points.filter(p => p.trim() !== '').map(p => ({ text: p })),
       responsibilities: responsibilities
-    };
+    };    
     //
     // Попытка отправления на бэк
     try {
       // Отправление запроса на бэк и получение ответа в переменную
-      await f_Post_New_Article (lawId, postData).then(function (response) {
-        if (response === 'NewArticleOK') {
-          setErrorMessage('Статья успешно добавлена');
-          //
-          //// Сброс формы
-          setPoints(['']);
-          //
-          setarticleTitle('');
-          //
-          setResponsibilities({
-            criminal: false,
-            administrative: false,
-            civil: false,
-            other: false
-          });
-        } else {
-          setErrorMessage('Неизвестная ошибка при добавлении статьи');
-        }
+      //
+      const response = await postNewArticle (lawId, postData);
+      //
+      console.log(`response is ${response}`)
+      // Если функция отработала без ошибок
+      if (response.success == true) {
+        console.log(`Запрос успешен ${response.data.status}`);
+        console.log(`response.data.status is ${response.data.status}, response.data.data is ${response.data.data}`)
+        setErrorMessage('Статья успешно добавлена');
         //
-        console.log('Response:', response);
-      })
-
+        //// Сброс формы
+        setPoints(['']);
+        //
+        setarticleTitle('');
+        //
+        setResponsibilities({
+          criminal: false,
+          administrative: false,
+          civil: false,
+          other: false
+        });
+      }
+      else {
+        console.log(`Получена ошибка: ${response.error}`);
+        //
+        setErrorMessage(`Ошибка при добавлении статьи ${response.error}`);
+      }
     } catch (error) {
       // Вывод текста ошибки в консоль
       console.error('Error:', error);
+      console.log(`message is ${error.message}`)
       //
       // Анализ ошибки и вывод ошибки на страницу
       if (error.response) {
@@ -139,7 +130,7 @@ function NewArticle() {
           setErrorMessage(`Ошибка сервера: ${error.response.status}`);
         }
       } else {
-        setErrorMessage('Не удалось подключиться к серверу');
+        setErrorMessage('Не удалось подключиться к серверу!');
       }
     }
   };

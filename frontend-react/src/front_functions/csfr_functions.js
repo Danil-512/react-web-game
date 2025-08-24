@@ -9,7 +9,7 @@ import { backServerPath } from './functions.js'
   * @returns { object } 'server response or { success: true, data: response.data }'.
 */
 export async function f_Send_Post_Request(p_Server_Path, p_Post_Data) {
-  const c_CSFR_Token    = f_Get_CSRF_Token_From_Cookie();
+  const c_CSFR_Token = f_Get_CSRF_Token_From_Cookie();
   //
   // Проверка полученного токена
   if (!c_CSFR_Token) {
@@ -32,13 +32,13 @@ export async function f_Send_Post_Request(p_Server_Path, p_Post_Data) {
       }
     );
     //
-    return {success: true, data: response.data };
-  } catch (error) {
-    console.error("Error:", error);
+    console.log(`f_Send_Post_Request response.data.status is ${response.data.status}. response.data.data is ${response.data.data}`);
     //
-    // Если получен ответ - значит ошибка со стороны бэка
-    if (error.response) {
-      const status = error.response.status;
+    if (response.data.status == 200 || response.data.status == 201) {
+      return {success: true, data: response.data };
+    } 
+    else {
+      const status = response.data.status;
       //
       if (status == 400) {
         console.error('Ошибка сервера! Некорректные данные.');
@@ -52,11 +52,11 @@ export async function f_Send_Post_Request(p_Server_Path, p_Post_Data) {
         console.error('Ошибка сервера! Ошибка в работе бэка.');
         return { success: false, error: `Ошибка в работе бэка!` };
       }
-    } 
-    // Если нет, значит до бэка запрос не дошел
-    else {
-      return {success: false, error: `axios: Ошибка получения данных от сервера: ${error}.`}
     }
+  } catch (error) {
+    console.error("Error:", error);
+    //
+    return {success: false, error: `axios: Ошибка получения данных от сервера: ${error}.`}
   }
 }
 
@@ -96,8 +96,12 @@ export async function f_Send_Get_Request(p_Server_Path) {
 }
 
 
-// Декоратор для проверки наличия csfr токена в куках браузера.
-// Если токена нет, вызов функции для его получения
+/**
+  * Декоратор для проверки наличия csfr токена в куках браузера.
+  *   Если токена нет, вызов функции для его получения
+  * @param   { function } targetunction - Нужная функция.
+  * @returns { function } Промис с результатом оригинальной функции в случае успешной проверки csrf, или объект с ошибкой.
+*/
 export function f_Check_CSFR_For_Post_Request(targetunction) {
   // Будет возвращена измененная функция с дополнительным функционалом проверки и получения csfr
   return async function (...args) {
@@ -132,7 +136,12 @@ export function f_Check_CSFR_For_Post_Request(targetunction) {
   }
 }
 
-// Функция для получения CSRF-токена c бэка
+
+/**
+  * Функция для получения CSRF-токена c бэка.
+  * @param   { } Нет параметров.
+  * @returns { string } CSRF токен из ответа бэка.
+*/
 export const f_Get_CSRF_Token_From_Back = async () => {
   await axios.get(
     `${backServerPath}/get-csrf/`, 
@@ -149,7 +158,12 @@ export const f_Get_CSRF_Token_From_Back = async () => {
   return csrfToken;
 };
 
-// Функция для получения CSRF-токена из кук
+
+/**
+  * Функция для получения CSRF-токена из кук.
+  * @param   { } Нет параметров.
+  * @returns { string } CSRF токен из кук.
+*/
 export const f_Get_CSRF_Token_From_Cookie = () => {
   const cookieValue = document.cookie
                               .split('; ')

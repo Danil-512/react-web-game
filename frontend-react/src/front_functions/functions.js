@@ -11,14 +11,33 @@ export const backServerPath = import.meta.env.VITE_MAIN_BACK_SERVER_PATH;
 // При каждом post запросе должен отправляться csfr токен для определения подленности пользователя
 // Пользователь может первой открыть любую страницу и отправить любой запрос, поэтому в случае отсутствия токена, его нужно получить
 
-export const f_Post_New_Article = async (p_lawId, p_postData) => {
+
+
+export const postNewArticle_1 = async (p_lawId, p_postData) => {
   const response = await f_Send_Post_Request(
     `${backServerPath}/laws/${p_lawId}/newArticle/`,
     p_postData
   );
   //
-  return response.data
+  return response;
 }
+// Добавление статьи с проверкой csfr токена
+/**
+  * Функция для создания новой статьи закона.
+  * @param   { number }     p_lawId - Ид закона.
+  * @param   { p_postData } p_postData - Данные новой статьи (JSON) - {
+      article_title: 'Название статьи',
+      points: ['Текст первого пункта', 'Текст второго пункта', 'Текст третьего пункта'],
+      responsibilities: {
+        criminal: false/true,
+        administrative: false/true,
+        civil: false/true,
+        other: false/true
+      }
+    }.
+  * @returns { object }     'server response or { success: true, data: response.data }'.
+*/
+export const postNewArticle = f_Check_CSFR_For_Post_Request(postNewArticle_1);
 
 
 // /----------------------------------------------------------------------------------------------------------------------------------------------

@@ -9,6 +9,10 @@ from .serializer import LawsSerializer, ArticlesShortSerializer, ArticleClausesS
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+# Импорт для использования стандартных htpp статусов в ответах
+from rest_framework import status
+
+
 # Функция для цветного вывода в консоль
 def color_print(text, color):
     if   color.upper() == 'BLUE':
@@ -241,7 +245,7 @@ class NewArticle(APIView):
                 description='Статья успешно добавлена',
                 examples={
                     'application/json': {
-                        "message": "NewArticleOK"
+                        "message": "Статья успешно добавлена"
                     }
                 }
             ),
@@ -254,6 +258,16 @@ class NewArticle(APIView):
     def post(self, request, p_law_id):
         color_print('\n/----------------------------------------------------------------------------------', 'red')
         print(f'Post request for adding a new article to the law. {p_law_id} law')
+        #
+        # Проверка вызова ошибки
+        # # Ответ в виде стандартного JSON
+        # response_data = {
+        #     'data': 'Закон не найден',
+        #     'status': status.HTTP_404_NOT_FOUND
+        # }
+        # print(f'response_data is: {response_data}')
+        # # Возврат ответа
+        # return Response(response_data)
         #
         # Переменная с отправленными фронтом данными
         data = request.data
@@ -268,7 +282,17 @@ class NewArticle(APIView):
         responsibilities = data['responsibilities']
         #
         # Получение закона из базы - используется как внешний ключ
-        law = Laws.objects.get(law_id = p_law_id)
+        try:
+            law = Laws.objects.get(law_id = p_law_id)
+        except:
+            # Ответ в виде стандартного JSON
+            response_data = {
+                'data':'Закон не найден',
+                'status':status.HTTP_404_NOT_FOUND
+            }
+            print(f'response_data is: {response_data}')
+            # Возврат ответа
+            return Response(response_data)
         #
         # Создание новой статьи в базе + получение переменной с ее данными
         new_article = Articles.objects.create(
@@ -294,4 +318,12 @@ class NewArticle(APIView):
         )
         #
         color_print('----------------------------------------------------------------------------------/\n', 'red')
-        return Response('NewArticleOK')
+        #
+        # Ответ в виде стандартного JSON
+        response_data = {
+            'data': 'Статья успешно добавлена',
+            'status': status.HTTP_200_OK
+        }
+        print(f'response_data is: {response_data}')
+        # Возврат ответа
+        return Response(response_data)

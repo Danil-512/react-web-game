@@ -141,20 +141,22 @@ class AuthorizationUser(APIView):
             #
             #return Response(f"AuthorizationOK-{user_data.access_type.access_type_descr}")
             # Пользователь успешно авторизован
-            return Response(
-                {
-                    "message": "Авторизация успешна",
-                    "access_type": user_data.access_type.access_type_descr
-                },
-                status=status.HTTP_200_OK
-            )
+            response_data = {
+                'data': 'Авторизация успешна',
+                'access_type': user_data.access_type.access_type_descr,
+                'status': status.HTTP_200_OK
+            }
+            #
+            return Response(response_data)
         else:
             print(f"Ошибка авторизации!")
             #
-            return Response(
-                {"error": "Неверный логин или пароль"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            response_data = {
+                'data': 'Неверный логин или пароль',
+                'status': status.HTTP_401_UNAUTHORIZED
+            }
+            #
+            return Response(response_data)
 
 
 class RegisterUser(APIView):
@@ -173,10 +175,13 @@ class RegisterUser(APIView):
         v_password = serializer.validated_data['userPassword']
         #
         if len(v_password) < 6 or len(v_login) < 6:
-            return Response(
-                {"error": "Логин и пароль должны быть не менее 6 символов!"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            #
+            response_data = {
+                'data': 'Логин и пароль должны быть не менее 6 символов!',
+                'status': status.HTTP_400_BAD_REQUEST
+            }
+            #
+            return Response(response_data)
         #
         # Попытка регистрации пользователя
         try:
@@ -189,18 +194,22 @@ class RegisterUser(APIView):
             #
             print(f'Пользователь v_login успешно зарегистрирован ')
             #
-            return Response(
-                {"message": "Пользователь успешно зарегистрирован!"},
-                status=status.HTTP_201_CREATED
-            )
+            response_data = {
+                'data': 'Пользователь успешно зарегистрирован!',
+                'status': status.HTTP_201_CREATED
+            }
+            #
+            return Response(response_data)
         #
         except Exception as e:
             print(f"Ошибка регистрации: {str(e)}")
             #
-            return Response(
-                {"error": "Не удалось зарегистрировать пользователя"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            response_data = {
+                'data': 'Не удалось зарегистрировать пользователя!',
+                'status': status.HTTP_500_INTERNAL_SERVER_ERROR
+            }
+            #
+            return Response(response_data)
 
 
 class GetActualUser(APIView):
@@ -274,18 +283,41 @@ class NewArticle(APIView):
                 },
                 timeout=5  # Таймаут 5 секунд
             )
-
-            print(f"Response from secondary server: {response.status_code} - {response.text}")
-
-            # Проверяем ответ второго сервера
-            if response.status_code in [200, 201]:
-                return Response('NewArticleOK')
-            else:
-                return Response('NewArticleOK')
+            #
+            # Получение объекта в виде нормального JSON
+            response = response.json()
+            #
+            # Сами проанализировали ответ
+            print(f"Response from secondary server: {response['status']} - {response['data']}")
+            #
+            # Обработка ошибки
+            if response['status'] not in (200, 202):
+                # Фронту не передаем точные данные об ошибке, только факт ошибки
+                # Ответ в виде стандартного JSON
+                response_data = {
+                    'data': 'Ошибка в работе сервиса законодательства',
+                    'status': status.HTTP_500_INTERNAL_SERVER_ERROR
+                }
+                #
+                print(f'NewArticle is executed with error. response_data is {response_data}')
+                # Возврат ответа
+                return Response(response_data)
+            #
+            # Отправление ответа в случае успеха - ответ второго сервера. Там уже указаны все http коды
+            response_data = {
+                'data': response['data'],
+                'status': response['status']
+            }
+            #
+            print(f'NewArticle is completed successfully. response_data is {response_data}')
+            # Возврат ответа
+            return Response(response_data)
 
         except requests.exceptions.RequestException as e:
             print(f"Request to secondary server failed: {str(e)}")
-            return Response({
-                'status': 'error',
-                'message': f'Failed to connect to secondary server: {str(e)}'
-            }, status=503)
+            response_data = {
+                'data': 'Ошибка в работе центрального бэк сервиса',
+                'status': status.HTTP_503_SERVICE_UNAVAILABLE
+            }
+            # Возврат ответа
+            return Response(response_data)
