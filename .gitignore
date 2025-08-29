@@ -1,4 +1,5 @@
 __pycache__/
+.pyc
 
 # Logs
 logs
@@ -28,3 +29,7 @@ dist-ssr
 
 .env
 .venv
+/django-rest-laws/laws_rest_api/laws/__pycache__
+/django-rest-laws/laws_rest_api/laws/__pycache__
+/django-rest-laws/laws_rest_api/laws_rest_api/__pycache__
+/django-rest-laws/laws_rest_api/laws/migrations/__pycache__
