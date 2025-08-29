@@ -14,3 +14,5 @@ Application Deployment Steps:
 -- npm install
 -- # Build project
 -- npm run build
+
+3) Enter databases data and server addresses into file .env
