@@ -1,0 +1,264 @@
+from pathlib import Path
+import environ
+import os
+
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+
+
+# Инициализация django-environ
+env = environ.Env(
+    DEBUG=(bool, False),
+    # Тут можно указывать дефолтные значения
+    DJANGO_MAIN_SECRET_KEY=(str, ''),
+    DJANGO_LAWS_SERVER_PATH=(str, ''),
+    FRONT_SERVER_PATH=(str, ''),
+    MAIN_DATABASE_HOST=(str, ''),
+    MAIN_DATABASE_PORT=(int, None),
+    MAIN_DATABASE_USER=(str, ''),
+    MAIN_DATABASE_PASSWORD=(str, ''),
+    MAIN_DATABASE_NAME=(str, ''),
+    REDIS_HOST=(str, ''),
+    REDIS_PASSWORD=(str, ''),
+    REDIS_PORT=(int, None),
+)
+#
+# Чтение файла .env, который находиться на директорию выше чем базовая директория проекта
+environ.Env.read_env(os.path.join(BASE_DIR, '../../.env'))
+#
+# Создание словаря со всеми нужными переменными
+env_dict = {
+    'FRONT_SERVER_PATH'       : env('FRONT_SERVER_PATH'),
+    'DJANGO_MAIN_SERVER_PATH' : env('VITE_MAIN_BACK_SERVER_PATH'),
+    'DJANGO_LAWS_SERVER_PATH' : env('VITE_LAWS_BACK_SERVER_PATH'),
+    'SECRET_KEY'              : env('DJANGO_MAIN_SECRET_KEY'),
+    'MAIN_DATABASE_HOST'      : env('MAIN_DATABASE_HOST'),
+    'MAIN_DATABASE_PORT'      : env('MAIN_DATABASE_PORT'),
+    'MAIN_DATABASE_USER'      : env('MAIN_DATABASE_USER'),
+    'MAIN_DATABASE_PASSWORD'  : env('MAIN_DATABASE_PASSWORD'),
+    'MAIN_DATABASE_NAME'      : env('MAIN_DATABASE_NAME'),
+    'REDIS_HOST'              : env('REDIS_HOST'),
+    'REDIS_PORT'              : env('REDIS_PORT'),
+    'REDIS_PASSWORD'          : env('REDIS_PASSWORD'),
+}
+#
+# # Проверка получения переменных окружения
+# print('/---------------------------------------')
+# print('Проверка получения переменных окружения')
+# for key, value in env_dict.items():
+#     print(f'key is {key}, value is {value}')
+# print('---------------------------------------/')
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = env_dict['SECRET_KEY']
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+
+
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"  # Используем и кэш и БД
+SESSION_COOKIE_NAME = "sessionid"
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # True для HTTPS
+SESSION_COOKIE_SAMESITE = "Lax"  # Для кросс-доменных запросов
+SESSION_COOKIE_DOMAIN = None  # Уберите явное указание домена
+SESSION_COOKIE_AGE = 1209600  # 2 недели
+
+# Настройки CSRF
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_DOMAIN = None
+
+CSRF_TRUSTED_ORIGINS = [
+    env_dict['FRONT_SERVER_PATH']
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    env_dict['FRONT_SERVER_PATH'],
+    env_dict['DJANGO_MAIN_SERVER_PATH'],
+    env_dict['DJANGO_LAWS_SERVER_PATH'],
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+CSRF_USE_SESSIONS = False
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Application definition
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'backend_api.apps',
+    'backend_api',
+    'rest_framework',
+    'corsheaders',
+    # Для ведения документации
+    'drf_yasg',
+]
+
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Должен быть перед CommonMiddleware
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'backend_api.backends.CustomUserAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AUTH_USER_MODEL = 'backend_api.CustomUser'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Или другие нужные permissions
+    ]
+}
+
+# Конфликт с куками
+#CORS_ORIGIN_ALLOW_ALL = True
+
+ROOT_URLCONF = 'back_djang_to_react.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'back_djang_to_react.wsgi.application'
+
+# Database
+# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
+DATABASES = {
+    "default": {
+        "ENGINE"  : 'django.db.backends.postgresql',
+        "HOST"    : env_dict['MAIN_DATABASE_HOST'],
+        "PORT"    : env_dict['MAIN_DATABASE_PORT'],
+        "USER"    : env_dict['MAIN_DATABASE_USER'],
+        "PASSWORD": env_dict['MAIN_DATABASE_PASSWORD'],
+        "NAME"    : env_dict['MAIN_DATABASE_NAME'],
+    }
+}
+
+# Составление строки локации базы кэша - данные редиса
+REDIS_LOCATION = f'redis://redis-to-django:{env_dict['REDIS_PASSWORD']}@{env_dict['REDIS_HOST']}:{env_dict['REDIS_PORT']}/0'
+#
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_LOCATION,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+            "IGNORE_EXCEPTIONS": True,
+        }
+    }
+}
+
+# Password validation
+# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.1/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_TZ = True
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
+
+STATIC_URL = 'static/'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
