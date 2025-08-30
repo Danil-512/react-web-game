@@ -27,7 +27,7 @@ env = environ.Env(
 )
 #
 # Чтение файла .env, который находиться на директорию выше чем базовая директория проекта
-environ.Env.read_env(os.path.join(BASE_DIR, '../../.env'))
+environ.Env.read_env(os.path.join(BASE_DIR, '../.env'))
 #
 # Создание словаря со всеми нужными переменными
 env_dict = {

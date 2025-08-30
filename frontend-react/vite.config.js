@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig(({ mode }) => {
-  // Явное указание местоположения файла с переменными окружения в директории выше
-  const envDir = path.resolve(__dirname, '..');
+  // Явное указание местоположения файла с переменными окружения в директории проекта
+  const envDir = path.resolve(__dirname, '.');
   //
   // Получение переменных окружения из файла
   const env = loadEnv(mode, envDir, '') // '' - Означает загрузку всех префиксов
@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     //
     // Указание где искать переменные окружения
-    envDir: '../',
+    envDir: './',
     //
     server: {
       proxy: {
