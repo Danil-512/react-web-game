@@ -33,7 +33,7 @@ COPY --chown=django-proj:django-proj . .
 USER django-proj
 #
 # Запуск проекта
-CMD ["gunicorn", "-b", "0.0.0.0:7000", "--pythonpath", "laws_rest_api", "laws_rest_api.wsgi:application"]
+CMD ["sh", "-c", "python ./laws_rest_api/manage.py migrate && gunicorn -b 0.0.0.0:7000 --pythonpath laws_rest_api laws_rest_api.wsgi:application"]
 #
 # Создание образа
 # docker build -t django_laws_image .

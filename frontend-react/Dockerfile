@@ -39,14 +39,14 @@ CMD ["serve", "-s", "dist", "-l", "5173"]
 
 
 # Сборка образа
-## docker build -t react-front-image .
+## docker build -t react_front_image .
 # Удаление образа
-## docker image rm react-front-image
+## docker image rm react_front_image
 # Запуск контейнера 
-## docker run -dp 5173:5173 --name react-front react-front-image
+## docker run -dp 5173:5173 --name react_front react_front_image
 # Удалить контейнер
-## docker rm react-front
+## docker rm react_front
 # Остановить контейнер 
-## docker stop react-front
+## docker stop react_front
 # Перезапустить контейнер
-## docker restart react-front
+## docker restart react_front

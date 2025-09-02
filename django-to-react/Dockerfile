@@ -33,7 +33,7 @@ COPY --chown=django-proj:django-proj . .
 USER django-proj
 #
 # Запуск проекта
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "--pythonpath", "back_djang_to_react", "back_djang_to_react.wsgi:application"]
+CMD ["sh", "-c", "python ./back_djang_to_react/manage.py migrate && gunicorn -b 0.0.0.0:8000 --pythonpath back_djang_to_react back_djang_to_react.wsgi:application"]
 #
 # Создание образа
 # docker build -t django_main_image .

@@ -26,6 +26,8 @@ MANIFEST
 venv/
 env/
 ENV/
+.env
+
 
 # Logs
 logs/
@@ -61,8 +63,15 @@ db.sqlite3-journal
 .env.development.local
 .env.test.local
 .env.production.local
+frontend-react/.env
+django-to-react/.env
+django-rest-laws/.env
 
 # Build
 dist/
 dist-ssr/
 *.local
+django-to-react/.env
+django-rest-laws/.env
+django-to-react/.env
+frontend-react/.env
