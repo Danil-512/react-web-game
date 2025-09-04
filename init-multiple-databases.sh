@@ -23,13 +23,9 @@ function create_database() {
   # <<-EOSQL - начало многострочного sql скрипта
   # ON_ERROR_STOP=1 - остановиться при ошибке sql
   PGPASSWORD="$MAIN_DATABASE_PASSWORD" psql -v ON_ERROR_STOP=1 --username "$MAIN_DATABASE_USER" --dbname "postgres" <<-EOSQL
-    #
-    # Создать базу данных с имененм из параметра
     CREATE DATABASE "$database";
-    #
-    # Выдать все права на созданную базу данных основному пользователю
     GRANT ALL PRIVILEGES ON DATABASE "$database" TO "$MAIN_DATABASE_USER";
-  EOSQL
+EOSQL
 }
 
 if [ -n "${POSTGRES_MULTIPLE_DATABASES:-}" ]; then

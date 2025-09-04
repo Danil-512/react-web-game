@@ -31,15 +31,17 @@ environ.Env.read_env(os.path.join(BASE_DIR, '../.env'))
 #
 # Создание словаря со всеми нужными переменными
 env_dict = {
-    'FRONT_SERVER_PATH'       : env('FRONT_SERVER_PATH'),
-    'DJANGO_MAIN_SERVER_PATH' : env('VITE_MAIN_BACK_SERVER_PATH'),
-    'DJANGO_LAWS_SERVER_PATH' : env('VITE_LAWS_BACK_SERVER_PATH'),
-    'SECRET_KEY'              : env('DJANGO_LAWS_SECRET_KEY'),
-    'MAIN_DATABASE_HOST'      : env('MAIN_DATABASE_HOST'),
-    'MAIN_DATABASE_PORT'      : env('MAIN_DATABASE_PORT'),
-    'MAIN_DATABASE_USER'      : env('MAIN_DATABASE_USER'),
-    'MAIN_DATABASE_PASSWORD'  : env('MAIN_DATABASE_PASSWORD'),
-    'MAIN_DATABASE_LAWS_NAME' : env('MAIN_DATABASE_LAWS_NAME'),
+    'FRONT_SERVER_PATH'           : env('FRONT_SERVER_PATH'),
+    'DJANGO_MAIN_SERVER_PATH'     : env('VITE_MAIN_BACK_SERVER_PATH'),
+    'DJANGO_LAWS_SERVER_PATH'     : env('VITE_LAWS_BACK_SERVER_PATH'),
+    'SECRET_KEY'                  : env('DJANGO_LAWS_SECRET_KEY'),
+    'MAIN_DATABASE_HOST'          : env('MAIN_DATABASE_HOST'),
+    'MAIN_DATABASE_PORT'          : env('MAIN_DATABASE_PORT'),
+    'MAIN_DATABASE_INTERNAL_PORT' : env('MAIN_DATABASE_INTERNAL_PORT'),
+    'MAIN_DATABASE_USER'          : env('MAIN_DATABASE_USER'),
+    'MAIN_DATABASE_PASSWORD'      : env('MAIN_DATABASE_PASSWORD'),
+    'MAIN_DATABASE_LAWS_NAME'     : env('MAIN_DATABASE_LAWS_NAME'),
+    'DOCKER_COMPOSE'              : env('DOCKER_COMPOSE'),
 }
 #
 # # Проверка получения переменных окружения
@@ -116,11 +118,18 @@ WSGI_APPLICATION = 'laws_rest_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Если приложение запускается на сервере через докер компоуз - то порт 5432, если извне то 5433
+if env_dict['DOCKER_COMPOSE'] == 'true':
+    DB_PORT = env_dict['MAIN_DATABASE_INTERNAL_PORT']
+else:
+    DB_PORT = env_dict['MAIN_DATABASE_PORT']
+
+
 DATABASES = {
     "default": {
         "ENGINE": 'django.db.backends.postgresql',
         "HOST"    : env_dict['MAIN_DATABASE_HOST'],
-        "PORT"    : env_dict['MAIN_DATABASE_PORT'],
+        "PORT"    : DB_PORT,
         "USER"    : env_dict['MAIN_DATABASE_USER'],
         "PASSWORD": env_dict['MAIN_DATABASE_PASSWORD'],
         "NAME"    : env_dict['MAIN_DATABASE_LAWS_NAME'],

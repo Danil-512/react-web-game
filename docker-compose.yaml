@@ -5,23 +5,6 @@
 
 # Описание всех частей приложения, которые будут запускаться в контейнерах
 services:
-  # nginx
-  # nginx:
-  #   # Образ контейнера nginx
-  #   image: nginx:latest
-  #   # Используемые порты. Первый - внешний сервера, второй - внутренний контейнера 
-  #   # Nginx - это http веб-сервер, поэтому использую стандартный http порт
-  #   ports:
-  #     - '80:80'
-  #   # Установка своей конфигурации. Также позволит редактировать конфигурацию без пересоздания контейнера
-  #   # В файле nginx.conf укажу перенаправление с 80 порта на порт субд 5984
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf
-  #   # Указание nginx ожидать запуска couchdb
-  #   depends_on:
-  #     couchdb:
-  #       condition: service_healthy
-  # couchdb
 
   postgres_db:
     image: postgres:17-alpine
@@ -33,7 +16,7 @@ services:
       POSTGRES_PASSWORD: ${MAIN_DATABASE_PASSWORD}
       POSTGRES_MULTIPLE_DATABASES: ${MAIN_DATABASE_NAME},${MAIN_DATABASE_LAWS_NAME}
     ports:
-      - "${MAIN_DATABASE_PORT}:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Файл для создания второй базы данных - MAIN_DATABASE_LAWS_NAME
@@ -42,10 +25,11 @@ services:
       - app_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${MAIN_DATABASE_USER}"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${MAIN_DATABASE_USER} -d postgres"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
     # Запуск команды для выдачи прав доступа на файл скрипта создания баз данных
     # +x - добавить право на выполнение файла
     # exec - заменяет текущий процесс на новый процесс
@@ -55,6 +39,7 @@ services:
       sh -c "
       chmod +x /docker-entrypoint-initdb.d/init-multiple-databases.sh
       && exec docker-entrypoint.sh postgres
+      && echo "host all all 172.0.0.0/8 scram-sha-256" >> /var/lib/postgresql/data/pg_hba.conf
       "
 
   front_react:
@@ -65,15 +50,17 @@ services:
     container_name: react_front
     env_file:
       - .env
-    ports:
-      - '${FRONT_SERVER_PORT}:${FRONT_SERVER_PORT}'
+    # ports:
+    #   - '${FRONT_SERVER_PORT}:${FRONT_SERVER_PORT}'
     depends_on:
       - back_django_main
     volumes:
+      - react_static:/app/dist
       - ./frontend-react:/app
       - /app/node_modules
     networks:
       - app_network
+    command: sh -c "npm install && npm run build && tail -f /dev/null"
 
 
   back_django_main:
@@ -89,10 +76,18 @@ services:
     volumes:
       - ./django-to-react:/app
     depends_on:
-      - redisdb
+      postgres_db:
+        condition: service_healthy
+      redisdb:
+        condition: service_healthy
     networks:
       - app_network
-
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 
   back_django_laws:
@@ -108,7 +103,10 @@ services:
     volumes:
       - ./django-rest-laws:/app
     depends_on:
-      - back_django_main
+      back_django_main:
+        condition: service_healthy
+      postgres_db:
+        condition: service_healthy
     networks:
       - app_network
 
@@ -127,10 +125,37 @@ services:
     networks:
       - app_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  
+  #nginx
+  nginx:
+    # Образ контейнера nginx
+    image: nginx:alpine
+    container_name: nginx_to_react
+    # Используемые порты. Первый - внешний сервера, второй - внутренний контейнера 
+    # Nginx - это http веб-сервер, поэтому использую стандартный http порт
+    ports:
+      - '80:80'
+    # Установка своей конфигурации. Также позволит редактировать конфигурацию без пересоздания контейнера
+    # В файле nginx.conf укажу перенаправление с 80 порта на порт 5173
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - react_static:/usr/share/nginx/html:ro
+    # Указание nginx ожидать запуска front_react
+    depends_on:
+      - front_react
+    networks:
+      - app_network
 
 volumes:
   redis_data:
   postgres_data:
+  react_static:
 
 networks:
   app_network:

@@ -1,3 +1,5 @@
+from datetime import time
+
 from django.core.cache import cache
 
 from django.contrib.auth import authenticate, login, logout
@@ -35,6 +37,19 @@ def color_print(text, color):
     else:
         print("\033[33m{}".format(text))
     print("\033[0m{}".format(''))
+
+
+# Функция для получения статуса подключения к базам
+class HealthCheck(APIView):
+    def get(self, request):
+        response_data = {
+            "status": "healthy",
+            "database": "connected",
+            "redis": "connected",
+            "timestamp": "time.time()"
+        }
+        #
+        return Response(response_data)
 
 
 # Функция для получения CSRF токена

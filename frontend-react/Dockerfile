@@ -29,13 +29,7 @@ RUN npm install -g serve
 # Копирование приложения собранного на этапе build
 COPY --from=builder /app/dist ./dist
 #
-# Объявление используемого serve порта
-EXPOSE 5173
-#
-# Запуск сервера для обслуживания статики
-# -s означает serve SPA - single page application
-# -l означает порт прослушивания
-CMD ["serve", "-s", "dist", "-l", "5173"]
+CMD ["echo", "React build complete - static files reading for nginx"]
 
 
 # Сборка образа

@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from backend_api.views import MyClass1View, AuthorizationUser, RegisterUser, GetCSRFToken, GetActualUser, CheckSessionView, debug_redis_sessions
+from backend_api.views import HealthCheck, MyClass1View, AuthorizationUser, RegisterUser, GetCSRFToken, GetActualUser, CheckSessionView, debug_redis_sessions
 from backend_api.views import NewArticle
 
 from .yasg import urlpatterns as doc_urls
@@ -33,8 +33,10 @@ urlpatterns = [
     path('api/check-session/', CheckSessionView.as_view(), name='check-session'),
     path('check-session/', CheckSessionView.as_view(), name='check-session'),
 
+    # Проверка статуса работоспособности для докер компоуза
+    path('health/', HealthCheck.as_view(), name='health'),
 
-# Авторизация и регистрация (Нужно разделить на отдельные адреса и функции)
+    # Авторизация и регистрация (Нужно разделить на отдельные адреса и функции)
     path('/', MyClass1View.as_view(), name='tttext'),  # Корневой маршрут должен быть последним
     path('', MyClass1View.as_view(), name='tttext'),  # Корневой маршрут должен быть последним
 

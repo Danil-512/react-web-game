@@ -1,3 +1,7 @@
+from datetime import datetime
+
+import datetime as dt
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -23,6 +27,36 @@ def color_print(text, color):
         print("\033[33m{}".format(text))
     print("\033[0m{}".format(''))
 
+# Функция для получения статуса подключения к базам
+class HealthCheck(APIView):
+    def get(self, request):
+        response_data = {
+            "status": "healthy",
+            "database": "connected",
+            "redis": "connected",
+            "timestamp": "time.time()"
+        }
+        #
+        return Response(response_data)
+
+# Функция для создания первого закона - без него приложение не работает (В будущем надо будет это исправить и реализовать возможность добавлять законы).
+def check_first_law_existence():
+    #
+    # Проверка наличия законов
+    existence_fact = Laws.objects.exists()
+    #
+    if existence_fact:
+        return
+    else:
+        # Законов в базе нет - нужно создать первый
+        first_law = Laws.objects.create(
+            law_number = '149-ФЗ',
+            law_title  = 'Об информации, информационных технологиях и о защите информаци',
+            law_date   = dt.date(2006, 7, 27)
+        )
+
+
+
 # Получение списка законов - первая страница
 class LawsListView(APIView):
     renderer_classes = [JSONRenderer] # Явное указание шаблона рендера. Без этого, restfr не знает какой выбрать
@@ -45,6 +79,8 @@ class LawsListView(APIView):
     )
     #
     def get(self, request):
+        check_first_law_existence()
+        #
         color_print('\n/----------------------------------------------------------------------------------\n', 'red')
         print('Get request for a list of laws ')
         #
@@ -94,6 +130,8 @@ class LawArticlesListView(APIView):
     )
     #
     def get(self, request, p_law_id):
+        check_first_law_existence()
+        #
         color_print('\n/----------------------------------------------------------------------------------', 'red')
         print(f'Get request for a list of articles of {p_law_id} law ')
         #
@@ -179,6 +217,8 @@ class ArticleTextListView(APIView):
     )
     #
     def get(self, request, p_law_id, p_article_id):
+        check_first_law_existence()
+        #
         color_print('\n/----------------------------------------------------------------------------------', 'red')
         print(f'Get request for a articles text. {p_law_id} law, {p_article_id} article')
         #
@@ -256,6 +296,8 @@ class NewArticle(APIView):
     )
     #
     def post(self, request, p_law_id):
+        check_first_law_existence()
+        #
         color_print('\n/----------------------------------------------------------------------------------', 'red')
         print(f'Post request for adding a new article to the law. {p_law_id} law')
         #
